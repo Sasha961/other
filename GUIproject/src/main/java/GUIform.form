@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="GUIform">
+  <grid id="27dc6" binding="panel1" default-binding="true" layout-manager="BorderLayout" hgap="1" vgap="1">
+    <constraints>
+      <xy x="30" y="20" width="560" height="476"/>
+    </constraints>
+    <properties/>
+    <border type="none"/>
+    <children>
+      <hspacer id="c4e76">
+        <constraints border-constraint="North"/>
+      </hspacer>
+      <vspacer id="6d9ed">
+        <constraints border-constraint="East"/>
+      </vspacer>
+      <vspacer id="6a7b7">
+        <constraints border-constraint="West"/>
+      </vspacer>
+      <grid id="7fb22" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
+        <constraints border-constraint="Center"/>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="ff525" class="javax.swing.JTextField" binding="textField1" default-binding="true">
+            <constraints/>
+            <properties>
+              <preferredSize width="80" height="30"/>
+            </properties>
+          </component>
+          <component id="24e86" class="javax.swing.JButton" binding="button1" default-binding="true">
+            <constraints/>
+            <properties>
+              <text value="выбрать путь"/>
+            </properties>
+          </component>
+          <component id="f77cc" class="javax.swing.JButton" binding="button2" default-binding="true">
+            <constraints/>
+            <properties>
+              <text value="Button"/>
+            </properties>
+          </component>
+        </children>
+      </grid>
+    </children>
+  </grid>
+</form>
