@@ -5,8 +5,21 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="41c960ce-9d1e-4296-84be-5709023c1753" name="Changes" comment="GUI interface">
+      <change afterPath="$PROJECT_DIR$/example/Spring Boot/.idea/libraries/Maven__javax_activation_javax_activation_api_1_2_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/example/Spring Boot/.idea/libraries/Maven__javax_xml_bind_jaxb_api_2_3_1.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CourseSpringBoot/Message.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CourseSpringBoot/Message.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/example/Spring Boot/.idea/libraries/Maven__org_springframework_boot_spring_boot_autoconfigure_2_7_5.xml" beforeDir="false" afterPath="$PROJECT_DIR$/example/Spring Boot/.idea/libraries/Maven__org_springframework_boot_spring_boot_autoconfigure_2_1_4_RELEASE.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/example/Spring Boot/.idea/support for Spring Boot.iml" beforeDir="false" afterPath="$PROJECT_DIR$/example/Spring Boot/.idea/support for Spring Boot.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/example/Spring Boot/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/example/Spring Boot/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/example/Spring Boot/target/classes/main/BookController.class" beforeDir="false" afterPath="$PROJECT_DIR$/example/Spring Boot/target/classes/main/BookController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/example/Spring Boot/target/classes/main/DefaultController.class" beforeDir="false" afterPath="$PROJECT_DIR$/example/Spring Boot/target/classes/main/DefaultController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/example/Spring Boot/target/classes/main/Main.class" beforeDir="false" afterPath="$PROJECT_DIR$/example/Spring Boot/target/classes/main/Main.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/example/Spring Boot/target/classes/main/Storage.class" beforeDir="false" afterPath="$PROJECT_DIR$/example/Spring Boot/target/classes/main/Storage.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/example/Spring Boot/target/classes/model/Book.class" beforeDir="false" afterPath="$PROJECT_DIR$/example/Spring Boot/target/classes/model/Book.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/example/test group chat/src/main/java/main/ChatController.java" beforeDir="false" afterPath="$PROJECT_DIR$/example/test group chat/src/main/java/main/ChatController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/example/test group chat/target/classes/main/ChatController.class" beforeDir="false" afterPath="$PROJECT_DIR$/example/test group chat/target/classes/main/ChatController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/example/test group chat/target/classes/static/css/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/example/test group chat/target/classes/static/css/styles.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/example/test group chat/target/classes/static/js/chat.js" beforeDir="false" afterPath="$PROJECT_DIR$/example/test group chat/target/classes/static/js/chat.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,7 +56,7 @@
     "UI_DESIGNER_EDITOR_MODE.PaletteManager.WIDTH": "71",
     "UI_DESIGNER_EDITOR_MODE.UIDesignerToolWindowManager.WIDTH": "367",
     "jdk.selected.JAVA_MODULE": "17",
-    "last_opened_file_path": "D:/application/MyGithub",
+    "last_opened_file_path": "D:/application/MyGithub/example/noSQL",
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
@@ -113,7 +126,21 @@
       <option name="project" value="LOCAL" />
       <updated>1662897318654</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="GUI interface">
+      <created>1668615067674</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1668615067674</updated>
+    </task>
+    <task id="LOCAL-00005" summary="GUI interface">
+      <created>1668615087065</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1668615087065</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">

@@ -20,7 +20,7 @@ $(function(){
                 $('.messages-list').html('');
                 for(i in response){
                     let element = getMessageElement(response[i]);
-                    $('.messages-list').append(item);
+                    $('.messages-list').append(element);
                 }
             });
         };

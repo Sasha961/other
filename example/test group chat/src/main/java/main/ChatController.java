@@ -50,6 +50,7 @@ public class ChatController {
         String sessionId = RequestContextHolder.currentRequestAttributes().getSessionId();
         User user = new User();
 
+
         user.setName(name);
         user.setSessionId(sessionId);
         userRepository.save(user);
@@ -81,9 +82,9 @@ public class ChatController {
     @GetMapping("/message")
     public List<DtoMessage> getMessagesList(){
 
-        List<DtoMessage> result = messageRepository.
-                findAll(Sort.by(Sort.Direction.ASC, "datetime")).stream()
-                .map(message -> MessageMapper.map(message)).collect(Collectors.toList());
+//        List<DtoMessage> result = messageRepository.
+//                findAll(Sort.by(Sort.Direction.ASC, "datetime")).stream()
+//                .map(message -> MessageMapper.map(message)).collect(Collectors.toList());
 
         return new ArrayList<>();
     }
