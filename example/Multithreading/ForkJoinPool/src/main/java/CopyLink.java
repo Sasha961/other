@@ -11,6 +11,7 @@ public class CopyLink {
     private CopyLink copyNewLink;
 
     public CopyLink(String link) {
+
         this.link = link;
         depth = 0;
         links = new ArrayList<>();
@@ -18,6 +19,7 @@ public class CopyLink {
     }
 
     public synchronized void addLink(CopyLink copyLink) {
+
         links.add(copyLink);
         copyLink.set(this);
     }

@@ -22,14 +22,17 @@ public class ForkJoinLinks extends RecursiveTask<List<CopyLink>> {
 
     @Override
     protected List<CopyLink> compute() {
+
         List<ForkJoinLinks> linksJoin = new ArrayList<>();
         Document document;
+
         try {
             document = Jsoup.connect(copyLink.getLink()).get();
             Thread.sleep(1000);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
         Elements links = document.select("a");
 
         for (Element elementLink : links) {
@@ -52,6 +55,7 @@ public class ForkJoinLinks extends RecursiveTask<List<CopyLink>> {
     }
 
     private boolean isLink(String link) {
+
         if (!allLinks.contains(link) && link.startsWith(copyLink.getLink())
                 && link.matches(REGEX)) {
             return true;

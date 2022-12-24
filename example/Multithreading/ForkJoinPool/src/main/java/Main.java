@@ -15,7 +15,6 @@ public class Main {
 
     private static String myFile = "bin/links.txt";
 
-
     public static void main(String[] args) throws IOException {
 
         CopyLink copyLink = new CopyLink(link);
@@ -25,6 +24,7 @@ public class Main {
     }
 
     public static void write(List<CopyLink> invoke) throws IOException {
+
         File file = new File(myFile);
         BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
         writer.write(link + "\n");
@@ -33,6 +33,7 @@ public class Main {
             String tab = StringUtils.repeat("\t", link1.getDepth());
             writer.write(tab + link1.getLink() + "\n");
         }
+
         writer.flush();
         writer.close();
     }
