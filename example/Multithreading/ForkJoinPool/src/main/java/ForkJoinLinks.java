@@ -33,6 +33,7 @@ public class ForkJoinLinks extends RecursiveTask<List<CopyLink>> {
             throw new RuntimeException(e);
         }
 
+
         Elements links = document.select("a");
 
         for (Element elementLink : links) {
