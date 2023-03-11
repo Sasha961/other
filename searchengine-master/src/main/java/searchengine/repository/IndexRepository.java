@@ -13,14 +13,8 @@ import java.util.List;
 public interface IndexRepository extends CrudRepository<IndexEntity, Integer> {
 
     List<IndexEntity> findAllByPageId(PageEntity pageEntity);
-
     @Transactional
     void deleteAllByPageId(PageEntity pageEntity);
-
     IndexEntity findByLemmaIdAndPageId(LemmaEntity lemmaEntity, PageEntity pageEntity);
-
     List<IndexEntity> findAllByLemmaId(LemmaEntity lemmaEntity);
-
-    List<IndexEntity> findByLemmaId(LemmaEntity lemma);
-
 }

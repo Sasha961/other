@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import searchengine.components.BaseSettings;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
-import searchengine.dto.indexing.EnumStatusAtSite;
+import searchengine.dto.indexing.*;
 import searchengine.model.PageEntity;
 import searchengine.model.SiteEntity;
 import searchengine.repository.PageRepository;
@@ -27,10 +27,12 @@ public class IndexingServiceImpl implements IndexingService {
     private static ForkJoinPool forkJoinPool = new ForkJoinPool();
     private final List<SiteEntity> SiteEntitiesList = new ArrayList<>();
 
+    private static final String LAST_ERROR_MESSAGE = "Остановлено пользователем";
+
     @Override
-    public Map<java.lang.String, ?> fullIndexingPages() {
+    public IndexingRepository fullIndexingPages() {
         if (forkJoinPool.getPoolSize() != 0)
-            return Map.of("result", false, "error", "Индексация уже запущена");
+            return new FullIndexingError();
         ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         for (Site sites : sitesList.getSites()) {
             if (siteRepository.findByUrl(sites.getUrl()) != null)
@@ -44,35 +46,34 @@ public class IndexingServiceImpl implements IndexingService {
             SiteEntitiesList.add(site);
             executorService.submit(() -> {
                 baseSettings.addToBase(sites.getUrl(), site);
-                ForkJoinPoolLinks forkJoinPoolService = new ForkJoinPoolLinks(site.getUrl(),
+                EnumerationOfLinks forkJoinPoolService = new EnumerationOfLinks(site.getUrl(),
                         pageRepository, siteRepository, site, lemmaService, baseSettings);
-                         forkJoinPool.invoke(forkJoinPoolService);
+                forkJoinPool.invoke(forkJoinPoolService);
                 site.setStatus(EnumStatusAtSite.INDEXED);
                 siteRepository.save(site);
             });
         }
-        return Map.of("result", true);
+        return new ResultTrue();
     }
 
     @Override
-    public Map<java.lang.String, ?> stopIndexingPages() {
+    public IndexingRepository stopIndexingPages() {
         if (forkJoinPool.getPoolSize() == 0)
-            return Map.of("result", false,
-                    "error", "Индексация не запущена");
+            return new StopIndexingError();
         forkJoinPool.shutdownNow();
         SiteEntitiesList.stream()
                 .filter(site -> site.getStatus() == EnumStatusAtSite.INDEXING)
                 .forEach(site -> {
                     site.setStatus(EnumStatusAtSite.FAILED);
-                    site.setLastError("Остановлено пользователем");
+                    site.setLastError(LAST_ERROR_MESSAGE);
                     siteRepository.save(site);
                 });
         forkJoinPool = new java.util.concurrent.ForkJoinPool();
-        return Map.of("result", true);
+        return new ResultTrue();
     }
 
     @Override
-    public Map<java.lang.String, ?> indexingPage(java.lang.String url) {
+    public IndexingRepository indexingPage(String url) {
         for (Site site : sitesList.getSites()) {
             if (url.contains(site.getName().toLowerCase())) {
                 PageEntity pageEntity = pageRepository.findByPath(url.replaceAll(site.getUrl(), "/"));
@@ -80,9 +81,9 @@ public class IndexingServiceImpl implements IndexingService {
                 if (pageEntity != null)
                     baseSettings.deletePage(pageEntity);
                 baseSettings.addToBase(url, siteEntity);
-                return Map.of("result", true);
+                return new ResultTrue();
             }
         }
-        return Map.of("Запрашиваемая страница не найдена", false);
+        return new IndexingPageError();
     }
 }

@@ -28,8 +28,6 @@ public class BaseSettings {
 
     public synchronized void addToBase(String link, SiteEntity site) {
         try {
-
-
             Connection.Response connection = new Connect().getDocumentConnect(link);
             site.setStatusTime(LocalDateTime.now());
             siteRepository.save(site);

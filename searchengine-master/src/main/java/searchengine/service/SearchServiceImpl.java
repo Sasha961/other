@@ -1,10 +1,15 @@
 package searchengine.service;
 
-
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
 import searchengine.config.SitesList;
+import searchengine.dto.search.PageSettings;
+import searchengine.dto.search.SearchRepository;
+import searchengine.dto.search.SearchSettings;
+import searchengine.dto.search.SearchError;
 import searchengine.model.IndexEntity;
 import searchengine.model.LemmaEntity;
 import searchengine.model.PageEntity;
@@ -26,97 +31,143 @@ public class SearchServiceImpl implements SearchService{
     final IndexRepository indexRepository;
     final SitesList sitesList;
 
-
     @SneakyThrows
     @Override
-    public  Map<String, ?> search(String query, String site, int offset, int limit) {
+    public SearchRepository search(String query, String site, int offset, int limit) {
 
         Set<String> querySplit = new HashSet<>(Arrays.asList(query.split(" +")));
         SearchLemmas searchLemmas = SearchLemmas.getLuceneMorphology();
-        List<java.lang.String> baseFormLemmas = new ArrayList<>();
-        List<LemmaEntity> lemmaEntityList = new ArrayList<>();
+        List<String> baseFormLemmas = new ArrayList<>();
+        querySplit.stream()
+                .filter(q -> searchLemmas.baseFormLemma(q.toLowerCase()) != null)
+                .forEach(q -> baseFormLemmas.add(searchLemmas.baseFormLemma(q.toLowerCase(Locale.ROOT))));
+        SiteEntity siteEntity = siteRepository.findByUrl(site);
+        List<LemmaEntity> lemmaEntityList = searchLemmas(baseFormLemmas, siteEntity);
+        if (lemmaEntityList.size() == 0)
+            return new SearchError();
+       lemmaEntityList.sort(Comparator.comparing(LemmaEntity::getFrequency));
+        List<IndexEntity> indexEntitiesList = searchIndex(lemmaEntityList);
 
-        for (String s : querySplit){
-            if (searchLemmas.baseFormLemma(s.toLowerCase()) != null){
-                baseFormLemmas.add(searchLemmas.baseFormLemma(s.toLowerCase(Locale.ROOT)));
-            }
-        }
-
-
-        for (String lemma : baseFormLemmas){
-
-            SiteEntity site1 = siteRepository.findByUrl(site);
-
-            LemmaEntity lemmaEntity = lemmaRepository.findByLemmaAndSiteId(lemma, site1.getId());
-
-            if (lemmaEntity == null){
-                continue;
-            }
-
-            float pageCount = pageRepository.count();
-            float lemmaCount = lemmaEntity.getFrequency();
-
-            float percent = (lemmaCount / pageCount) * 100;
-
-            if (percent > 50) {
-                continue;
-            }
-            lemmaEntityList.add(lemmaEntity);
-        }
-        if (lemmaEntityList.size() == 0){
-            return Map.of("result","нет совпадений" );
-        }
-
-       lemmaEntityList.sort(Comparator.comparing(m -> m.getFrequency()));
-
-        List<IndexEntity> indexEntitiesList = new ArrayList<>();
-
-
-        indexEntitiesList = indexRepository.findAllByLemmaId(lemmaEntityList.get(0));
-
-
-        for (int i = 1; i < lemmaEntityList.size(); i++) {
-            for (int j = 0; j< indexEntitiesList.size() ; j++) {
-                if (lemmaEntityList.get(i).getId() == indexEntitiesList.get(j).getLemmaId().getId()) {
-                    continue;
-                }
-                indexEntitiesList.remove(j);
-            }
-        }
-
+        List<PageSettings> data = new ArrayList<>();
 
         for (IndexEntity indexEntity : indexEntitiesList){
 
             Optional<PageEntity> pageEntity = pageRepository.findById(indexEntity.getPageId().getId());
+            Document document = Jsoup.parse(pageEntity.get().getContent());
+            String title = document.title();
+            String[] pages = document.body().text().split(" +");
 
-            String elements = pageEntity.get().getContent();
+//
+            int count = -1;
+            for (int i = 0; i < pages.length ; i++){
+                    for (LemmaEntity lemmaEntity : lemmaEntityList) {
+                        if (pages[i].toLowerCase().matches("[а-я]+")){
+                            if (lemmaEntity.getLemma().toLowerCase().equals(searchLemmas.baseFormLemma(pages[i].toLowerCase()))){
+                            pages[i] = "<b>" + pages[i] + "</b>";
+                            if (count == -1)
+                                    count = i;
+                        }
+                    }
+                }
+            }
+            String snippet = "";
+            int revers = 15;
+            if (count != -1){
 
-            int titleBegin = elements.indexOf("<title>") + 7;
-            int titleEnd = elements.indexOf("</title>");
+                int a = (count - revers < 0 ? 0 : count - revers);
+                int b = (count + revers > pages.length ? pages.length - 1 : count + revers);
 
-            String title = elements.substring(titleBegin, titleEnd);
+                for (int j = a; j < b; j++)
+                    snippet += pages[j] + " ";
+            }
 
-            int snippetPosition = elements.indexOf(indexEntity.getLemmaId().getLemma());
+            snippet = snippet.trim();
+            char s = ' ';
+            if (!snippet.isBlank()){
+                s = snippet.charAt(snippet.length() - 1);
+            }
+            if (s != '.'){
+                snippet = snippet + "...";
+            }
 
-            String[] clearContent = elements.replaceAll("[^А-я]", " ").toLowerCase().split(" +");
+            float rank = 0;
+            float allRank = 0;
 
+            for (IndexEntity indexEntity1 : indexEntitiesList){
+                if(indexEntity.getLemmaId().getId() == indexEntity1.getLemmaId().getId()){
+                    rank += indexEntity1.getRank();
+                }
+                allRank += indexEntity1.getRank();
 
+            }
 
-            System.out.println(title);
+            float relevance = rank / allRank;
+            PageSettings pageSettings = new PageSettings();
+            pageSettings.setRelevance(relevance);
+            pageSettings.setUri(indexEntity.getPageId().getPath());
+            pageSettings.setTitle(title);
+            pageSettings.setSite(siteEntity.getUrl());
+            pageSettings.setSnippet(snippet);
+            pageSettings.setSiteName(siteEntity.getName());
+            data.add(pageSettings);
 
-            Arrays.stream(clearContent).forEach(System.out::println);
-
-
-            System.exit(1);
 
         }
 
+        data.sort(Comparator.comparing(d -> d.relevance, Comparator.reverseOrder()));
+
+        SearchSettings searchSettings = new SearchSettings();
+
+        searchSettings.setResult(true);
+        searchSettings.setData(data);
+        searchSettings.setCount(indexEntitiesList.size());
 
 
 
+        return searchSettings;
+    }
 
-        System.exit(1);
+    private List<LemmaEntity> searchLemmas(List<String> baseFormLemmas, SiteEntity siteEntity) {
 
-        return null;
+        List<LemmaEntity> finalLemmaEntityList = new ArrayList<>();
+        float pageCount = siteEntity == null ? pageRepository.count() : pageRepository.countBySiteId(siteEntity);
+        for (String lemma : baseFormLemmas) {
+
+            List<LemmaEntity> lemmaEntityList = new ArrayList<>();
+
+            if (siteEntity == null)
+                lemmaEntityList.addAll(lemmaRepository.findAllByLemma(lemma));
+            else
+                lemmaEntityList.add(lemmaRepository.findByLemmaAndSiteId(lemma, siteEntity.getId()));
+
+
+            if (lemmaEntityList.size() == 0)
+                continue;
+
+            for (LemmaEntity lemmaEntity : lemmaEntityList) {
+                float lemmaCount = lemmaEntity.getFrequency();
+                float percent = (lemmaCount / pageCount) * 100;
+                if (percent > 50)
+                    continue;
+                finalLemmaEntityList.add(lemmaEntity);
+            }
+        }
+        return finalLemmaEntityList;
+    }
+
+    private List<IndexEntity> searchIndex(List<LemmaEntity> lemmaEntityList){
+        List<IndexEntity> indexEntitiesList =indexRepository.findAllByLemmaId(lemmaEntityList.get(0));
+
+        for (int i = 0; i < indexEntitiesList.size(); i++){
+            for (int j = 1; j < lemmaEntityList.size(); j++){
+                IndexEntity indexEntity = indexRepository.findByLemmaIdAndPageId(lemmaEntityList.get(j), indexEntitiesList.get(i).getPageId());
+                if (indexEntity != null){
+                    continue;
+                }
+                indexEntitiesList.remove(i);
+                i--;
+            }
+        }
+        return indexEntitiesList;
     }
 }

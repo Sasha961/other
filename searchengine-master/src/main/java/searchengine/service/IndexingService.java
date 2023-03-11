@@ -1,12 +1,13 @@
 package searchengine.service;
 
 
-import java.util.Map;
+import searchengine.dto.indexing.IndexingRepository;
 
 public interface IndexingService {
-    Map<String, ?> fullIndexingPages();
+    IndexingRepository fullIndexingPages();
 
-    Map<String, ?> stopIndexingPages();
+    IndexingRepository stopIndexingPages();
 
-    Map<String, ?> indexingPage(String url);
+    IndexingRepository indexingPage(String url);
+
 }

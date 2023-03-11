@@ -1,8 +1,13 @@
 package searchengine.service;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Connection;
 import org.jsoup.select.Elements;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import searchengine.config.Connect;
 import searchengine.components.BaseSettings;
 import searchengine.model.SiteEntity;
@@ -15,8 +20,9 @@ import java.util.TreeSet;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
 
+@Service
 @RequiredArgsConstructor
-public class ForkJoinPoolLinks extends RecursiveAction {
+public class EnumerationOfLinks extends RecursiveAction {
 
     private final String link;
     private final PageRepository pageRepository;
@@ -24,6 +30,7 @@ public class ForkJoinPoolLinks extends RecursiveAction {
     private final SiteEntity site;
     private final LemmaService lemmaService;
     private final BaseSettings addToBase;
+
 
     @Override
     protected void compute() {
@@ -34,7 +41,7 @@ public class ForkJoinPoolLinks extends RecursiveAction {
             if (!connection.contentType().startsWith("text/html"))
                 return;
             Elements links = connection.parse().select("a");
-            List<ForkJoinPoolLinks> linksJoin = new ArrayList<>();
+            List<EnumerationOfLinks> linksJoin = new ArrayList<>();
             links.stream()
                     .map(el -> el.attr("abs:href"))
                     .filter(link -> checkLink(link, site))
@@ -43,7 +50,7 @@ public class ForkJoinPoolLinks extends RecursiveAction {
                         allLinks.add(link);
                     });
             allLinks.forEach(link -> {
-                ForkJoinPoolLinks forkJoinPoolService = new ForkJoinPoolLinks(link,
+                EnumerationOfLinks forkJoinPoolService = new EnumerationOfLinks(link,
                         pageRepository,
                         siteRepository,
                         site,

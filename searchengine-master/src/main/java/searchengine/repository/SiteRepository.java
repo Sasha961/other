@@ -10,7 +10,6 @@ import javax.transaction.Transactional;
 public interface SiteRepository extends CrudRepository<SiteEntity, Integer> {
 
     SiteEntity findByUrl(String url);
-
     @Transactional
     void deleteByUrl(String url);
 }
