@@ -26,6 +26,7 @@ public class IndexingServiceImpl implements IndexingService {
     private final PageRepository pageRepository;
     private static ForkJoinPool forkJoinPool = new ForkJoinPool();
     private final List<SiteEntity> SiteEntitiesList = new ArrayList<>();
+
     private static final String LAST_ERROR_MESSAGE = "Остановлено пользователем";
 
     @Override
@@ -59,7 +60,7 @@ public class IndexingServiceImpl implements IndexingService {
     public IndexingRepository stopIndexingPages() {
         if (forkJoinPool.getPoolSize() == 0)
             return new StopIndexingError();
-        forkJoinPool.shutdownNow();
+
         SiteEntitiesList.stream()
                 .filter(site -> site.getStatus() == EnumStatusAtSite.INDEXING)
                 .forEach(site -> {
@@ -67,6 +68,7 @@ public class IndexingServiceImpl implements IndexingService {
                     site.setLastError(LAST_ERROR_MESSAGE);
                     siteRepository.save(site);
                 });
+        forkJoinPool.shutdown();
         forkJoinPool = new ForkJoinPool();
         return new ResultTrue();
     }

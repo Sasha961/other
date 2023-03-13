@@ -30,39 +30,50 @@ public class EnumerationOfLinks extends RecursiveAction {
     private final LemmaService lemmaService;
     private final BaseSettings addToBase;
 
+//    private volatile boolean doStop = false;
+//
+//    public synchronized void doStop() {
+//        this.doStop = true;
+//    }
+//
+//    private synchronized boolean keepRunning() {
+//        return this.doStop == false;
+//    }
+
     @Override
     protected void compute() {
-
-        TreeSet<String> allLinks = new TreeSet<>();
-        try {
-            Connection.Response connection = new Connect().getDocumentConnect(link);
-            Thread.sleep(300);
-            if (!connection.contentType().startsWith("text/html"))
-                return;
-            Elements links = connection.parse().select("a");
-            List<EnumerationOfLinks> linksJoin = new ArrayList<>();
-            links.stream()
-                    .map(el -> el.attr("abs:href"))
-                    .filter(link -> checkLink(link, site))
-                    .forEach(link -> {
-                        addToBase.addToBase(link, site);
-                        allLinks.add(link);
-                    });
-            allLinks.forEach(link -> {
-                EnumerationOfLinks forkJoinPoolService = new EnumerationOfLinks(link,
-                        pageRepository,
-                        siteRepository,
-                        site,
-                        lemmaService,
-                        addToBase);
-                forkJoinPoolService.fork();
-                linksJoin.add(forkJoinPoolService);
-            });
-            if (!linksJoin.isEmpty())
-                linksJoin.forEach(ForkJoinTask::invokeAll);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//            while (keepRunning()){
+            TreeSet<String> allLinks = new TreeSet<>();
+            try {
+                Connection.Response connection = new Connect().getDocumentConnect(link);
+                Thread.sleep(300);
+                if (!connection.contentType().startsWith("text/html"))
+                    return;
+                Elements links = connection.parse().select("a");
+                List<EnumerationOfLinks> linksJoin = new ArrayList<>();
+                links.stream()
+                        .map(el -> el.attr("abs:href"))
+                        .filter(link -> checkLink(link, site))
+                        .forEach(link -> {
+                            addToBase.addToBase(link, site);
+                            allLinks.add(link);
+                        });
+                allLinks.forEach(link -> {
+                    EnumerationOfLinks forkJoinPoolService = new EnumerationOfLinks(link,
+                            pageRepository,
+                            siteRepository,
+                            site,
+                            lemmaService,
+                            addToBase);
+                    forkJoinPoolService.fork();
+                    linksJoin.add(forkJoinPoolService);
+                });
+                if (!linksJoin.isEmpty())
+                    linksJoin.forEach(ForkJoinTask::invokeAll);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+//        }
     }
 
     private synchronized boolean checkLink(String link, SiteEntity site) {

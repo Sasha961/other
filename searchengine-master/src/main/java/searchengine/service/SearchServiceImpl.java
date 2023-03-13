@@ -39,6 +39,7 @@ public class SearchServiceImpl implements SearchService {
 
         if (query.isEmpty())
             return new SearchError();
+
         Set<String> querySplit = new HashSet<>(Arrays.asList(query.split(REGEX_SPLIT)));
         SearchLemmas searchLemmas = SearchLemmas.getLuceneMorphology();
         List<String> baseFormLemmas = new ArrayList<>();
