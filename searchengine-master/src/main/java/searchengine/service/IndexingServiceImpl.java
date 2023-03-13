@@ -26,6 +26,7 @@ public class IndexingServiceImpl implements IndexingService {
     private final PageRepository pageRepository;
     private static ForkJoinPool forkJoinPool = new ForkJoinPool();
     private final List<SiteEntity> SiteEntitiesList = new ArrayList<>();
+    private EnumerationOfLinks enumerationOfLinks;
 
     private static final String LAST_ERROR_MESSAGE = "Остановлено пользователем";
 
@@ -46,7 +47,7 @@ public class IndexingServiceImpl implements IndexingService {
             SiteEntitiesList.add(site);
             executorService.submit(() -> {
                 baseSettings.addToBase(sites.getUrl(), site);
-                EnumerationOfLinks enumerationOfLinks = new EnumerationOfLinks(site.getUrl(),
+                enumerationOfLinks = new EnumerationOfLinks(site.getUrl(),
                         pageRepository, siteRepository, site, lemmaService, baseSettings);
                 forkJoinPool.invoke(enumerationOfLinks);
                 site.setStatus(EnumStatusAtSite.INDEXED);
@@ -60,7 +61,7 @@ public class IndexingServiceImpl implements IndexingService {
     public IndexingRepository stopIndexingPages() {
         if (forkJoinPool.getPoolSize() == 0)
             return new StopIndexingError();
-
+//            enumerationOfLinks.doStop();
         SiteEntitiesList.stream()
                 .filter(site -> site.getStatus() == EnumStatusAtSite.INDEXING)
                 .forEach(site -> {
