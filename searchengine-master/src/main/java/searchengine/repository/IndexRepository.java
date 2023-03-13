@@ -8,6 +8,7 @@ import searchengine.model.PageEntity;
 
 import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface IndexRepository extends CrudRepository<IndexEntity, Integer> {
@@ -15,6 +16,6 @@ public interface IndexRepository extends CrudRepository<IndexEntity, Integer> {
     List<IndexEntity> findAllByPageId(PageEntity pageEntity);
     @Transactional
     void deleteAllByPageId(PageEntity pageEntity);
-    IndexEntity findByLemmaIdAndPageId(LemmaEntity lemmaEntity, PageEntity pageEntity);
+    Optional<IndexEntity> findByLemmaIdAndPageId(LemmaEntity lemmaEntity, PageEntity pageEntity);
     List<IndexEntity> findAllByLemmaId(LemmaEntity lemmaEntity);
 }

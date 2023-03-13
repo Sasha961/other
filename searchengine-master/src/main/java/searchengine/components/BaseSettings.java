@@ -14,6 +14,7 @@ import searchengine.service.LemmaService;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -45,10 +46,10 @@ public class BaseSettings {
     }
 
     public void deleteAllBySite(String site) {
-        SiteEntity siteId = siteRepository.findByUrl(site);
-        List<PageEntity> pages = pageRepository.findAllBySiteId(siteId);
+        Optional<SiteEntity> siteId = siteRepository.findByUrl(site);
+        List<PageEntity> pages = pageRepository.findAllBySiteId(siteId.get());
         pages.forEach(indexRepository::deleteAllByPageId);
-        lemmaRepository.deleteAllBySiteId(siteId.getId());
+        lemmaRepository.deleteAllBySiteId(siteId.get().getId());
         siteRepository.deleteByUrl(site);
     }
 

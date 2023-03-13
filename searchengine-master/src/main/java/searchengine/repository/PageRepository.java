@@ -7,12 +7,12 @@ import searchengine.model.SiteEntity;
 
 import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PageRepository extends CrudRepository<PageEntity, Integer> {
 
-    @Transactional
-    int countByPathAndSiteId(String path, SiteEntity site);
+    Optional<PageEntity> findByPathAndSiteId(String path, SiteEntity site);
     PageEntity findByPath(String path);
     @Transactional
     void deleteByPath(String path);

@@ -26,7 +26,6 @@ public class IndexingServiceImpl implements IndexingService {
     private final PageRepository pageRepository;
     private static ForkJoinPool forkJoinPool = new ForkJoinPool();
     private final List<SiteEntity> SiteEntitiesList = new ArrayList<>();
-
     private static final String LAST_ERROR_MESSAGE = "Остановлено пользователем";
 
     @Override
@@ -35,7 +34,7 @@ public class IndexingServiceImpl implements IndexingService {
             return new FullIndexingError();
         ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         for (Site sites : sitesList.getSites()) {
-            if (siteRepository.findByUrl(sites.getUrl()) != null)
+            if (siteRepository.findByUrl(sites.getUrl()).isPresent())
                 baseSettings.deleteAllBySite(sites.getUrl());
             SiteEntity site = SiteEntity.builder()
                     .name(sites.getName())
@@ -46,9 +45,9 @@ public class IndexingServiceImpl implements IndexingService {
             SiteEntitiesList.add(site);
             executorService.submit(() -> {
                 baseSettings.addToBase(sites.getUrl(), site);
-                EnumerationOfLinks forkJoinPoolService = new EnumerationOfLinks(site.getUrl(),
+                EnumerationOfLinks enumerationOfLinks = new EnumerationOfLinks(site.getUrl(),
                         pageRepository, siteRepository, site, lemmaService, baseSettings);
-                forkJoinPool.invoke(forkJoinPoolService);
+                forkJoinPool.invoke(enumerationOfLinks);
                 site.setStatus(EnumStatusAtSite.INDEXED);
                 siteRepository.save(site);
             });
@@ -68,7 +67,7 @@ public class IndexingServiceImpl implements IndexingService {
                     site.setLastError(LAST_ERROR_MESSAGE);
                     siteRepository.save(site);
                 });
-        forkJoinPool = new java.util.concurrent.ForkJoinPool();
+        forkJoinPool = new ForkJoinPool();
         return new ResultTrue();
     }
 
@@ -77,10 +76,10 @@ public class IndexingServiceImpl implements IndexingService {
         for (Site site : sitesList.getSites()) {
             if (url.contains(site.getName().toLowerCase())) {
                 PageEntity pageEntity = pageRepository.findByPath(url.replaceAll(site.getUrl(), "/"));
-                SiteEntity siteEntity = siteRepository.findByUrl(site.getUrl());
+                Optional<SiteEntity> siteEntity = siteRepository.findByUrl(site.getUrl());
                 if (pageEntity != null)
                     baseSettings.deletePage(pageEntity);
-                baseSettings.addToBase(url, siteEntity);
+                baseSettings.addToBase(url, siteEntity.get());
                 return new ResultTrue();
             }
         }

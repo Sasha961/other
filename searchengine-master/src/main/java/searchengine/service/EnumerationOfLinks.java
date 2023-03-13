@@ -20,7 +20,6 @@ import java.util.TreeSet;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
 
-@Service
 @RequiredArgsConstructor
 public class EnumerationOfLinks extends RecursiveAction {
 
@@ -31,9 +30,9 @@ public class EnumerationOfLinks extends RecursiveAction {
     private final LemmaService lemmaService;
     private final BaseSettings addToBase;
 
-
     @Override
     protected void compute() {
+
         TreeSet<String> allLinks = new TreeSet<>();
         try {
             Connection.Response connection = new Connect().getDocumentConnect(link);
@@ -68,6 +67,6 @@ public class EnumerationOfLinks extends RecursiveAction {
 
     private synchronized boolean checkLink(String link, SiteEntity site) {
         return link.startsWith(site.getUrl()) && !link.endsWith("#|.jpg|.png") && !link.equals(this.link) &&
-                pageRepository.countByPathAndSiteId(link.replaceAll(site.getUrl(), "/"), site) == 0;
+                pageRepository.findByPathAndSiteId(link.replaceAll(site.getUrl(), "/"), site).isEmpty();
     }
 }

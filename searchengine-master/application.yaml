@@ -22,7 +22,10 @@ indexing-settings:
     - url: https://dimonvideo.ru/
       name: DimonVideo.ru
 
-connect-settings:
-  - connect: userAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:101.0) Gecko/20100101 Firefox/101.0")
-      .ignoreContentType(true)
-      .referrer("http://www.google.com").execute();
+jsoup-setting:
+  jsoup:
+    userAgent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:101.0) Gecko/20100101 Firefox/101.0
+    referrer: http://www.google.com
+    timeout: 10000
+    ignoreHttpErrors: true
+    followRedirects: false

@@ -5,11 +5,12 @@ import org.springframework.stereotype.Repository;
 import searchengine.model.SiteEntity;
 
 import javax.transaction.Transactional;
+import java.util.Optional;
 
 @Repository
 public interface SiteRepository extends CrudRepository<SiteEntity, Integer> {
 
-    SiteEntity findByUrl(String url);
+    Optional<SiteEntity> findByUrl(String url);
     @Transactional
     void deleteByUrl(String url);
 }
