@@ -3,7 +3,7 @@ package searchengine.dto.search;
 import lombok.Data;
 
 @Data
-public class PageSettings {
+public class SearchPageSettings {
 
     public String site;
     public String siteName;

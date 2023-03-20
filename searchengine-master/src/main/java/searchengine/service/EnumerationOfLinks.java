@@ -1,14 +1,9 @@
 package searchengine.service;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Connection;
 import org.jsoup.select.Elements;
-import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
-import searchengine.config.Connect;
+import searchengine.components.Connect;
 import searchengine.components.BaseSettings;
 import searchengine.model.SiteEntity;
 import searchengine.repository.PageRepository;
@@ -30,6 +25,7 @@ public class EnumerationOfLinks extends RecursiveAction {
     private final LemmaService lemmaService;
     private final BaseSettings addToBase;
 
+
 //    private volatile boolean doStop = false;
 //
 //    public synchronized void doStop() {
@@ -43,9 +39,12 @@ public class EnumerationOfLinks extends RecursiveAction {
     @Override
     protected void compute() {
 //            while (keepRunning()){
+            if (checkLink(link,site)){
+                return;
+            }
             TreeSet<String> allLinks = new TreeSet<>();
             try {
-                Connection.Response connection = new Connect().getDocumentConnect(link);
+                Connection.Response connection = Connect.getDocumentConnect(link);
                 Thread.sleep(300);
                 if (!connection.contentType().startsWith("text/html"))
                     return;
@@ -55,18 +54,18 @@ public class EnumerationOfLinks extends RecursiveAction {
                         .map(el -> el.attr("abs:href"))
                         .filter(link -> checkLink(link, site))
                         .forEach(link -> {
-                            addToBase.addToBase(link, site);
                             allLinks.add(link);
+                            addToBase.addToBase(link, site);
                         });
                 allLinks.forEach(link -> {
-                    EnumerationOfLinks forkJoinPoolService = new EnumerationOfLinks(link,
+                    EnumerationOfLinks enumerationOfLinks = new EnumerationOfLinks(link,
                             pageRepository,
                             siteRepository,
                             site,
                             lemmaService,
                             addToBase);
-                    forkJoinPoolService.fork();
-                    linksJoin.add(forkJoinPoolService);
+                    enumerationOfLinks.fork();
+                    linksJoin.add(enumerationOfLinks);
                 });
                 if (!linksJoin.isEmpty())
                     linksJoin.forEach(ForkJoinTask::invokeAll);
@@ -77,7 +76,12 @@ public class EnumerationOfLinks extends RecursiveAction {
     }
 
     private synchronized boolean checkLink(String link, SiteEntity site) {
-        return link.startsWith(site.getUrl()) && !link.endsWith("#|.jpg|.png") && !link.equals(this.link) &&
-                pageRepository.findByPathAndSiteId(link.replaceAll(site.getUrl(), "/"), site).isEmpty();
+        return link.startsWith(site.getUrl()) &&
+                (!link.endsWith("#") &&
+                !link.endsWith("png") &&
+                !link.endsWith("jpg") &&
+                !link.endsWith("JPG") &&
+                !link.endsWith("PNG")) && !link.equals(this.link) &&
+                pageRepository.findByPathAndSiteId(link.replaceAll(site.getUrl(), ""), site).isEmpty();
     }
 }

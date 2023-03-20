@@ -17,10 +17,10 @@ spring:
 
 indexing-settings:
   sites:
-    - url: https://www.playback.ru/
+    - url: https://www.playback.ru
       name: PlayBack.Ru
-    - url: https://dimonvideo.ru/
-      name: DimonVideo.ru
+    - url: https://nikoartgallery.com
+      name: NikoArtGallery.Ru
 
 jsoup-setting:
   jsoup:

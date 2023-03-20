@@ -2,6 +2,7 @@ package searchengine.service;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.morphology.LuceneMorphology;
+import org.apache.lucene.morphology.english.EnglishLuceneMorphology;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
 import org.jsoup.nodes.Document;
 
@@ -13,7 +14,10 @@ public class SearchLemmas {
 
     private final LuceneMorphology luceneMorph;
     private static final String WORD_TYPE_REGEX = "\\W\\w&&[^а-яА-Я\\s]";
-    private static final String[] particlesNames = new String[]{"МЕЖД", "ПРЕДЛ", "СОЮЗ"};
+    private static final String[] PARTICLES_NAMES = new String[]{"МЕЖД", "ПРЕДЛ", "СОЮЗ"};
+    private static final String HTML = "html";
+    private static final String WORD_REGEX = "([^а-я\\s])";
+    private static final String SPACE_REGEX = "\\s+";
 
     public static SearchLemmas getLuceneMorphology() throws IOException {
         LuceneMorphology luceneMorph = new RussianLuceneMorphology();
@@ -35,7 +39,7 @@ public class SearchLemmas {
         return lemmas;
     }
 
-    public String baseFormLemma(String lemma){
+    public String baseFormLemma(String lemma) {
 
         if (lemma.isBlank()) {
             return null;
@@ -52,7 +56,7 @@ public class SearchLemmas {
     }
 
     private boolean checkServiceUnits(String lemma) {
-        for (String name : particlesNames) {
+        for (String name : PARTICLES_NAMES) {
             if (lemma.contains(name)) {
                 return true;
             }
@@ -61,11 +65,10 @@ public class SearchLemmas {
     }
 
     private String[] parseText(Document document) {
-        String documentElements = document.getElementsByTag("html").text();
-        String[] text = documentElements.toLowerCase(Locale.ROOT)
-                .replaceAll("([^а-я\\s])", " ")
+        String documentElements = document.getElementsByTag(HTML).text();
+        return documentElements.toLowerCase(Locale.ROOT)
+                .replaceAll(WORD_REGEX, " ")
                 .trim()
-                .split("\\s+");
-        return text;
+                .split(SPACE_REGEX);
     }
 }

@@ -1,6 +1,7 @@
 package searchengine.dto.indexing;
 
 import lombok.Getter;
+import searchengine.repository.IndexingRepository;
 
 @Getter
 public class FullIndexingError implements IndexingRepository {

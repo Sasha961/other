@@ -8,6 +8,7 @@ import searchengine.config.SitesList;
 import searchengine.dto.indexing.*;
 import searchengine.model.PageEntity;
 import searchengine.model.SiteEntity;
+import searchengine.repository.IndexingRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
 
@@ -46,7 +47,7 @@ public class IndexingServiceImpl implements IndexingService {
             siteRepository.save(site);
             SiteEntitiesList.add(site);
             executorService.submit(() -> {
-                baseSettings.addToBase(sites.getUrl(), site);
+                baseSettings.addToBase(sites.getUrl() + "/", site);
                 enumerationOfLinks = new EnumerationOfLinks(site.getUrl(),
                         pageRepository, siteRepository, site, lemmaService, baseSettings);
                 forkJoinPool.invoke(enumerationOfLinks);
@@ -69,7 +70,11 @@ public class IndexingServiceImpl implements IndexingService {
                     site.setLastError(LAST_ERROR_MESSAGE);
                     siteRepository.save(site);
                 });
-        forkJoinPool.shutdown();
+        try {
+            forkJoinPool.shutdownNow();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
         forkJoinPool = new ForkJoinPool();
         return new ResultTrue();
     }
@@ -78,10 +83,9 @@ public class IndexingServiceImpl implements IndexingService {
     public IndexingRepository indexingPage(String url) {
         for (Site site : sitesList.getSites()) {
             if (url.contains(site.getName().toLowerCase())) {
-                PageEntity pageEntity = pageRepository.findByPath(url.replaceAll(site.getUrl(), "/"));
+                Optional<PageEntity> pageEntity = pageRepository.findByPath(url.replace(site.getUrl(), ""));
                 Optional<SiteEntity> siteEntity = siteRepository.findByUrl(site.getUrl());
-                if (pageEntity != null)
-                    baseSettings.deletePage(pageEntity);
+                pageEntity.ifPresent(baseSettings::deletePage);
                 baseSettings.addToBase(url, siteEntity.get());
                 return new ResultTrue();
             }

@@ -12,8 +12,9 @@ import java.util.Optional;
 @Repository
 public interface PageRepository extends CrudRepository<PageEntity, Integer> {
 
+    @Transactional
     Optional<PageEntity> findByPathAndSiteId(String path, SiteEntity site);
-    PageEntity findByPath(String path);
+    Optional<PageEntity> findByPath(String path);
     @Transactional
     void deleteByPath(String path);
     List<PageEntity> findAllBySiteId(SiteEntity id);

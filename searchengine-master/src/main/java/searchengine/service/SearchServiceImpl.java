@@ -1,7 +1,6 @@
 package searchengine.service;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
@@ -11,11 +10,9 @@ import searchengine.model.IndexEntity;
 import searchengine.model.LemmaEntity;
 import searchengine.model.PageEntity;
 import searchengine.model.SiteEntity;
-import searchengine.repository.IndexRepository;
-import searchengine.repository.LemmaRepository;
-import searchengine.repository.PageRepository;
-import searchengine.repository.SiteRepository;
+import searchengine.repository.*;
 
+import java.io.IOException;
 import java.util.*;
 
 @Service
@@ -30,49 +27,52 @@ public class SearchServiceImpl implements SearchService {
 
     private static final int SHIFT = 10;
     private static final String REGEX = "[а-я]+";
-    private static final String REGEX_SPLIT = " +";
+    private static final String REGEX_SPLIT_SPACE = " +";
     private static final String[] SELECTION = {"<b>", "</b>"};
 
-    @SneakyThrows
+    private float allRank = 0;
+
     @Override
-    public SearchRepository search(String query, String site, int offset, int limit) {
+    public SearchRepository search(String query, Optional<String> site, int offset, int limit) {
 
-        if (query.isEmpty())
-            return new SearchError();
-
-        Set<String> querySplit = new HashSet<>(Arrays.asList(query.split(REGEX_SPLIT)));
-        SearchLemmas searchLemmas = SearchLemmas.getLuceneMorphology();
+        if (query.isEmpty()) {
+            return new EmptyRequestError();
+        }
+        SearchLemmas searchLemmas;
+        try {
+            searchLemmas = SearchLemmas.getLuceneMorphology();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        Set<String> querySplit = new HashSet<>(Arrays.asList(query.split(REGEX_SPLIT_SPACE)));
         List<String> baseFormLemmas = new ArrayList<>();
-
         querySplit.stream()
-                .filter(q -> q.matches(REGEX))
-                .filter(q -> searchLemmas.baseFormLemma(q.toLowerCase()) != null)
-                .forEach(q -> baseFormLemmas.add(searchLemmas.baseFormLemma(q.toLowerCase(Locale.ROOT))));
+                .filter(q -> q.matches(REGEX) && searchLemmas.baseFormLemma(q.toLowerCase()) != null)
+                .forEach(q -> baseFormLemmas.add(searchLemmas.baseFormLemma(q.toLowerCase())));
 
-        Optional<SiteEntity> siteEntity = siteRepository.findByUrl(site);
-
-        List<LemmaEntity> lemmaEntityList = searchLemmas(baseFormLemmas, siteEntity.get());
-        if (lemmaEntityList.isEmpty())
-            return new LemmaError();
-
+        List<LemmaEntity> lemmaEntityList = new ArrayList<>();
+        if (site.isEmpty()) {
+            lemmaEntityList.addAll(searchLemmas(baseFormLemmas, null));
+        } else {
+            Optional<SiteEntity> siteEntity = siteRepository.findByUrl(site.get());
+            lemmaEntityList.addAll(searchLemmas(baseFormLemmas, siteEntity.get()));
+        }
+        if (lemmaEntityList.isEmpty()) {
+            return new SearchLemmaError();
+        }
         lemmaEntityList.sort(Comparator.comparing(LemmaEntity::getFrequency));
         List<PageEntity> pagesList = searchPages(lemmaEntityList);
-        List<PageSettings> data = new ArrayList<>();
-        float allRank = 0;
-        for (PageEntity page : pagesList) {
-            allRank += relevancePage(page, lemmaEntityList);
-        }
+        List<SearchPageSettings> data = new ArrayList<>();
         for (PageEntity page : pagesList) {
             Document document = Jsoup.parse(page.getContent());
             String title = document.title();
-            String[] pages = document.body().text().split(REGEX_SPLIT);
+            String[] pages = document.body().text().split(REGEX_SPLIT_SPACE);
             int snippetPosition = -1;
             for (int i = 0; i < pages.length; i++) {
                 for (LemmaEntity lemmaEntity : lemmaEntityList) {
                     if (!pages[i].toLowerCase().matches(REGEX))
-                        continue;
-                    if (lemmaEntity.getLemma().toLowerCase()
-                            .equals(searchLemmas.baseFormLemma(pages[i].toLowerCase()))) {
+                        break;
+                    if (lemmaEntity.getLemma().equals(searchLemmas.baseFormLemma(pages[i].toLowerCase()))) {
                         pages[i] = SELECTION[0] + pages[i] + SELECTION[1];
                         if (snippetPosition == -1)
                             snippetPosition = i;
@@ -88,13 +88,13 @@ public class SearchServiceImpl implements SearchService {
             }
             snippet = new StringBuilder(snippet.toString().trim());
             float relevance = relevancePage(page, lemmaEntityList);
-            PageSettings pageSettings = new PageSettings();
+            SearchPageSettings pageSettings = new SearchPageSettings();
             pageSettings.setRelevance(relevance / allRank);
             pageSettings.setUri(page.getPath());
             pageSettings.setTitle(title);
-            pageSettings.setSite(siteEntity.get().getUrl());
+            pageSettings.setSite(page.getSiteId().getUrl());
             pageSettings.setSnippet(snippet.toString());
-            pageSettings.setSiteName(siteEntity.get().getName());
+            pageSettings.setSiteName(page.getSiteId().getName());
             data.add(pageSettings);
         }
         data.sort(Comparator.comparing(d -> d.relevance, Comparator.reverseOrder()));
@@ -106,16 +106,18 @@ public class SearchServiceImpl implements SearchService {
     }
 
     private List<LemmaEntity> searchLemmas(List<String> baseFormLemmas, SiteEntity siteEntity) {
-
         List<LemmaEntity> finalLemmaEntityList = new ArrayList<>();
         List<LemmaEntity> lemmaEntityList = new ArrayList<>();
-        float pageCount = siteEntity == null ? pageRepository.count() :
-                pageRepository.countBySiteId(siteEntity);
-        for (String lemma : baseFormLemmas) {
-            if (siteEntity == null)
-                lemmaEntityList.addAll(lemmaRepository.findAllByLemma(lemma));
-            else
-                lemmaEntityList.add(lemmaRepository.findByLemmaAndSiteId(lemma, siteEntity.getId()));
+        float pageCount;
+        if (Optional.ofNullable(siteEntity).isEmpty()) {
+            pageCount = pageRepository.count();
+            baseFormLemmas.forEach(lemma -> lemmaEntityList.addAll(lemmaRepository.findAllByLemma(lemma)));
+        } else {
+            pageCount = pageRepository.countBySiteId(siteEntity);
+            baseFormLemmas
+                    .stream().filter(lemma -> lemmaRepository.findByLemmaAndSiteId(lemma, siteEntity.getId()) != null)
+                    .forEach(lemma ->
+                            lemmaEntityList.add(lemmaRepository.findByLemmaAndSiteId(lemma, siteEntity.getId())));
         }
 
         for (LemmaEntity lemmaEntity : lemmaEntityList) {
@@ -129,9 +131,7 @@ public class SearchServiceImpl implements SearchService {
     }
 
     private List<PageEntity> searchPages(List<LemmaEntity> lemmaEntityList) {
-
         List<IndexEntity> indexEntitiesList = indexRepository.findAllByLemmaId(lemmaEntityList.get(0));
-
         List<PageEntity> pagesList = new ArrayList<>();
         indexEntitiesList.stream()
                 .filter(indexEntity -> !pagesList.contains(indexEntity.getPageId()))
@@ -139,13 +139,14 @@ public class SearchServiceImpl implements SearchService {
 
         for (int i = 0; i < pagesList.size(); i++) {
             for (int j = 1; j < lemmaEntityList.size(); j++) {
-                Optional<IndexEntity> indexEntity = indexRepository
-                        .findByLemmaIdAndPageId(lemmaEntityList.get(j), pagesList.get(i));
-                if (indexEntity.isPresent()) {
+                Optional<PageEntity> pageEntity = Optional.ofNullable(indexRepository
+                        .findByLemmaIdAndPageId(lemmaEntityList.get(j), pagesList.get(i)).get().getPageId());
+                if (pageEntity.isPresent()) {
+                    allRank += relevancePage(pageEntity.get(), lemmaEntityList);
                     continue;
                 }
                 pagesList.remove(i);
-                i = 0;
+                i--;
             }
         }
         return pagesList;
@@ -154,11 +155,9 @@ public class SearchServiceImpl implements SearchService {
     private float relevancePage(PageEntity page, List<LemmaEntity> lemmaEntityList) {
         float rank = 0;
         for (LemmaEntity lemmaEntity : lemmaEntityList) {
-            Optional<IndexEntity> indexEntity = indexRepository
-                    .findByLemmaIdAndPageId(lemmaEntity, page);
-            if (indexEntity.isPresent()) {
-                rank += indexEntity.get().getRank();
-            }
+            Optional<Float> rankLemma = Optional.of(
+                    indexRepository.findByLemmaIdAndPageId(lemmaEntity, page).get().getRank());
+            rank += rankLemma.get();
         }
         return rank;
     }

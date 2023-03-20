@@ -1,7 +1,7 @@
 package searchengine.service;
 
 
-import searchengine.dto.indexing.IndexingRepository;
+import searchengine.repository.IndexingRepository;
 
 public interface IndexingService {
     IndexingRepository fullIndexingPages();

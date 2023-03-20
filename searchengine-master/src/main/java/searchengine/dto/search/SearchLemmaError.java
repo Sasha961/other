@@ -1,9 +1,10 @@
 package searchengine.dto.search;
 
 import lombok.Getter;
+import searchengine.repository.SearchRepository;
 
 @Getter
-public class LemmaError implements SearchRepository{
+public class SearchLemmaError implements SearchRepository {
 
     final boolean result = false;
 

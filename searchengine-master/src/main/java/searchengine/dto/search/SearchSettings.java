@@ -1,6 +1,7 @@
 package searchengine.dto.search;
 
 import lombok.Data;
+import searchengine.repository.SearchRepository;
 
 import java.util.List;
 
@@ -9,5 +10,5 @@ public class SearchSettings implements SearchRepository {
 
     boolean result;
     long count;
-    List<PageSettings> data;
+    List<SearchPageSettings> data;
 }

@@ -3,7 +3,6 @@ package searchengine.components;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Connection;
 import org.springframework.stereotype.Component;
-import searchengine.config.Connect;
 import searchengine.model.PageEntity;
 import searchengine.model.SiteEntity;
 import searchengine.repository.IndexRepository;
@@ -26,21 +25,26 @@ public class BaseSettings {
     final IndexRepository indexRepository;
     final LemmaRepository lemmaRepository;
 
-
     public synchronized void addToBase(String link, SiteEntity site) {
         try {
-            Connection.Response connection = new Connect().getDocumentConnect(link);
+            if (pageRepository.findByPathAndSiteId(link.replaceAll(site.getUrl(), ""), site).isPresent()){
+                return;
+            }
+            Connection.Response connection = Connect.getDocumentConnect(link);
+            if (connection.parse() == null) {
+                return;
+            }
             site.setStatusTime(LocalDateTime.now());
             siteRepository.save(site);
             PageEntity pageEntity = PageEntity.builder()
                     .code(connection.statusCode())
                     .siteId(site)
-                    .path(link.replaceAll(site.getUrl(), "/"))
+                    .path(link.replaceAll(site.getUrl(), ""))
                     .content(connection.body())
                     .build();
             pageRepository.save(pageEntity);
-            lemmaService.addLemma(connection, site, pageEntity);
-        }catch (Exception ex){
+            lemmaService.addLemma(connection.parse(), site, pageEntity);
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
     }

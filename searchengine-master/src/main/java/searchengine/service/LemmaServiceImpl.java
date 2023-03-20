@@ -1,7 +1,7 @@
 package searchengine.service;
 
 import lombok.RequiredArgsConstructor;
-import org.jsoup.Connection;
+import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
 import searchengine.model.IndexEntity;
 import searchengine.model.LemmaEntity;
@@ -23,15 +23,13 @@ public class LemmaServiceImpl implements LemmaService {
     private final IndexRepository indexRepository;
 
     @Override
-    public synchronized void addLemma(Connection.Response document,
+    public synchronized void addLemma(Document document,
                                       SiteEntity site,
                                       PageEntity pageEntity) throws IOException {
-        if (document == null){
-            return;
-        }
+
         SearchLemmas searchLemmas1 = SearchLemmas.getLuceneMorphology();
-        Map<String, Integer> stringIntegerMap = searchLemmas1.lemma(document.parse());
-        for (Map.Entry<String, Integer> lemma : stringIntegerMap.entrySet()) {
+        Map<String, Integer> lemmaParse = searchLemmas1.lemma(document);
+        for (Map.Entry<String, Integer> lemma : lemmaParse.entrySet()) {
             LemmaEntity lemmaEntity = lemmaRepository.findByLemmaAndSiteId(lemma.getKey(), site.getId());
             if (lemmaEntity == null) {
                 lemmaEntity = LemmaEntity.builder()
