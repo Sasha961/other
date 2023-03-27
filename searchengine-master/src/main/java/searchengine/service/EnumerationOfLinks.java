@@ -2,10 +2,12 @@ package searchengine.service;
 
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Connection;
+import org.jsoup.Jsoup;
 import org.jsoup.select.Elements;
-import searchengine.components.Connect;
+import org.springframework.beans.factory.annotation.Autowired;
 import searchengine.components.BaseSettings;
-import searchengine.model.SiteEntity;
+import searchengine.config.Config;
+import searchengine.model.Site;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
 
@@ -21,30 +23,24 @@ public class EnumerationOfLinks extends RecursiveAction {
     private final String link;
     private final PageRepository pageRepository;
     private final SiteRepository siteRepository;
-    private final SiteEntity site;
+    private final Site site;
     private final LemmaService lemmaService;
     private final BaseSettings addToBase;
-
-
-//    private volatile boolean doStop = false;
-//
-//    public synchronized void doStop() {
-//        this.doStop = true;
-//    }
-//
-//    private synchronized boolean keepRunning() {
-//        return this.doStop == false;
-//    }
+    @Autowired
+    private Config config;
 
     @Override
     protected void compute() {
-//            while (keepRunning()){
             if (checkLink(link,site)){
                 return;
             }
             TreeSet<String> allLinks = new TreeSet<>();
             try {
-                Connection.Response connection = Connect.getDocumentConnect(link);
+                Connection.Response connection = Jsoup.connect(link)
+                        .ignoreHttpErrors(true)
+                        .userAgent(config.getUserAgent())
+                        .referrer(config.getUserAgent())
+                        .execute();
                 Thread.sleep(300);
                 if (!connection.contentType().startsWith("text/html"))
                     return;
@@ -72,10 +68,9 @@ public class EnumerationOfLinks extends RecursiveAction {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-//        }
     }
 
-    private synchronized boolean checkLink(String link, SiteEntity site) {
+    private synchronized boolean checkLink(String link, Site site) {
         return link.startsWith(site.getUrl()) &&
                 (!link.endsWith("#") &&
                 !link.endsWith("png") &&

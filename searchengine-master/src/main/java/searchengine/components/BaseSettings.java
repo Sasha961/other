@@ -2,9 +2,11 @@ package searchengine.components;
 
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Connection;
+import org.jsoup.Jsoup;
 import org.springframework.stereotype.Component;
-import searchengine.model.PageEntity;
-import searchengine.model.SiteEntity;
+import searchengine.config.Config;
+import searchengine.model.Page;
+import searchengine.model.Site;
 import searchengine.repository.IndexRepository;
 import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
@@ -24,19 +26,24 @@ public class BaseSettings {
     final LemmaService lemmaService;
     final IndexRepository indexRepository;
     final LemmaRepository lemmaRepository;
+    final Config config;
 
-    public synchronized void addToBase(String link, SiteEntity site) {
+    public synchronized void addToBase(String link, Site site) {
         try {
             if (pageRepository.findByPathAndSiteId(link.replaceAll(site.getUrl(), ""), site).isPresent()){
                 return;
             }
-            Connection.Response connection = Connect.getDocumentConnect(link);
+            Connection.Response connection = Jsoup.connect(link)
+                    .ignoreHttpErrors(true)
+                    .userAgent(config.getUserAgent())
+                    .referrer(config.getReferrer())
+                    .execute();
             if (connection.parse() == null) {
                 return;
             }
             site.setStatusTime(LocalDateTime.now());
             siteRepository.save(site);
-            PageEntity pageEntity = PageEntity.builder()
+            Page pageEntity = Page.builder()
                     .code(connection.statusCode())
                     .siteId(site)
                     .path(link.replaceAll(site.getUrl(), ""))
@@ -50,14 +57,14 @@ public class BaseSettings {
     }
 
     public void deleteAllBySite(String site) {
-        Optional<SiteEntity> siteId = siteRepository.findByUrl(site);
-        List<PageEntity> pages = pageRepository.findAllBySiteId(siteId.get());
+        Optional<Site> siteId = siteRepository.findByUrl(site);
+        List<Page> pages = pageRepository.findAllBySiteId(siteId.get());
         pages.forEach(indexRepository::deleteAllByPageId);
         lemmaRepository.deleteAllBySiteId(siteId.get().getId());
         siteRepository.deleteByUrl(site);
     }
 
-    public void deletePage(PageEntity pageEntity) {
+    public void deletePage(Page pageEntity) {
         indexRepository.deleteAllByPageId(pageEntity);
         lemmaService.deleteLemma(pageEntity);
         pageRepository.deleteByPath(pageEntity.getPath());

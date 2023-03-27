@@ -3,8 +3,8 @@ server:
 
 spring:
   datasource:
-    username: root
-    password: 608370
+    username: username
+    password: password
     url: jdbc:mysql://localhost:3306/search_engine?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
   jpa:
     properties:
@@ -22,10 +22,6 @@ indexing-settings:
     - url: https://nikoartgallery.com
       name: NikoArtGallery.Ru
 
-jsoup-setting:
-  jsoup:
-    userAgent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:101.0) Gecko/20100101 Firefox/101.0
-    referrer: http://www.google.com
-    timeout: 10000
-    ignoreHttpErrors: true
-    followRedirects: false
+config:
+  userAgent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:101.0) Gecko/20100101 Firefox/101.0
+  referrer: http://www.google.com

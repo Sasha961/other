@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import searchengine.dto.indexing.EnumStatusAtSite;
+import searchengine.dto.EnumStatusAtSite;
 
 import java.time.LocalDateTime;
 

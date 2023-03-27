@@ -1,10 +1,10 @@
 package searchengine.repository;
 
 import org.springframework.stereotype.Repository;
-import searchengine.dto.indexing.FullIndexingError;
-import searchengine.dto.indexing.IndexingPageError;
-import searchengine.dto.indexing.ResultTrue;
-import searchengine.dto.indexing.StopIndexingError;
+import searchengine.dto.Responce.indexing.FullIndexingError;
+import searchengine.dto.Responce.indexing.IndexingPageError;
+import searchengine.dto.Responce.indexing.ResultTrue;
+import searchengine.dto.Responce.indexing.StopIndexingError;
 
 @Repository
 public interface IndexingRepository {

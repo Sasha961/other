@@ -11,7 +11,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "page")
-public class PageEntity {
+public class Page {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -19,7 +19,7 @@ public class PageEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "site_id", nullable = false)
-    SiteEntity siteId;
+    Site siteId;
 
     @Column(columnDefinition = "text not null, index pathId (path(512),site_id)")
     String path;

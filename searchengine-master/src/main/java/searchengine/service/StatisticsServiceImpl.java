@@ -2,10 +2,9 @@ package searchengine.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import searchengine.config.Site;
 import searchengine.config.SitesList;
 import searchengine.dto.statistics.*;
-import searchengine.model.SiteEntity;
+import searchengine.model.Site;
 import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
@@ -26,9 +25,9 @@ public class StatisticsServiceImpl implements StatisticsService {
         total.setSites(sites.getSites().size());
         total.setIndexing(true);
         List<DetailedStatisticsItem> detailed = new ArrayList<>();
-        List<Site> sitesList = sites.getSites();
-        for (Site site : sitesList) {
-            Optional<SiteEntity> siteEntity = siteRepository.findByUrl(site.getUrl());
+        List<searchengine.config.Site> sitesList = sites.getSites();
+        for (searchengine.config.Site site : sitesList) {
+            Optional<Site> siteEntity = siteRepository.findByUrl(site.getUrl());
             if (siteEntity.isEmpty()) {
                 continue;
             }

@@ -3,11 +3,14 @@ package searchengine.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import searchengine.components.BaseSettings;
-import searchengine.config.Site;
 import searchengine.config.SitesList;
-import searchengine.dto.indexing.*;
-import searchengine.model.PageEntity;
-import searchengine.model.SiteEntity;
+import searchengine.dto.EnumStatusAtSite;
+import searchengine.dto.Responce.indexing.FullIndexingError;
+import searchengine.dto.Responce.indexing.IndexingPageError;
+import searchengine.dto.Responce.indexing.ResultTrue;
+import searchengine.dto.Responce.indexing.StopIndexingError;
+import searchengine.model.Page;
+import searchengine.model.Site;
 import searchengine.repository.IndexingRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
@@ -26,7 +29,7 @@ public class IndexingServiceImpl implements IndexingService {
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
     private static ForkJoinPool forkJoinPool = new ForkJoinPool();
-    private final List<SiteEntity> SiteEntitiesList = new ArrayList<>();
+    private final List<Site> SiteEntitiesList = new ArrayList<>();
     private EnumerationOfLinks enumerationOfLinks;
 
     private static final String LAST_ERROR_MESSAGE = "Остановлено пользователем";
@@ -36,10 +39,10 @@ public class IndexingServiceImpl implements IndexingService {
         if (forkJoinPool.getPoolSize() != 0)
             return new FullIndexingError();
         ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-        for (Site sites : sitesList.getSites()) {
+        for (searchengine.config.Site sites : sitesList.getSites()) {
             if (siteRepository.findByUrl(sites.getUrl()).isPresent())
                 baseSettings.deleteAllBySite(sites.getUrl());
-            SiteEntity site = SiteEntity.builder()
+            Site site = Site.builder()
                     .name(sites.getName())
                     .url(sites.getUrl())
                     .status(EnumStatusAtSite.INDEXING)
@@ -62,7 +65,6 @@ public class IndexingServiceImpl implements IndexingService {
     public IndexingRepository stopIndexingPages() {
         if (forkJoinPool.getPoolSize() == 0)
             return new StopIndexingError();
-//            enumerationOfLinks.doStop();
         SiteEntitiesList.stream()
                 .filter(site -> site.getStatus() == EnumStatusAtSite.INDEXING)
                 .forEach(site -> {
@@ -71,7 +73,7 @@ public class IndexingServiceImpl implements IndexingService {
                     siteRepository.save(site);
                 });
         try {
-            forkJoinPool.shutdownNow();
+            forkJoinPool.shutdown();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -81,10 +83,10 @@ public class IndexingServiceImpl implements IndexingService {
 
     @Override
     public IndexingRepository indexingPage(String url) {
-        for (Site site : sitesList.getSites()) {
+        for (searchengine.config.Site site : sitesList.getSites()) {
             if (url.contains(site.getName().toLowerCase())) {
-                Optional<PageEntity> pageEntity = pageRepository.findByPath(url.replace(site.getUrl(), ""));
-                Optional<SiteEntity> siteEntity = siteRepository.findByUrl(site.getUrl());
+                Optional<Page> pageEntity = pageRepository.findByPath(url.replace(site.getUrl(), ""));
+                Optional<Site> siteEntity = siteRepository.findByUrl(site.getUrl());
                 pageEntity.ifPresent(baseSettings::deletePage);
                 baseSettings.addToBase(url, siteEntity.get());
                 return new ResultTrue();

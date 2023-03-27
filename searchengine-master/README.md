@@ -20,8 +20,13 @@
 
 
 ## Запуск
-Для использования программы, независимо от того, какую операционную систему вы используете, Linux, Mac или Windows, если на вашем компьютере установлен [JDK (Java Development Kit)](https://www.oracle.com/cis/java/technologies/downloads/), вы можете в консоли набрать следующие команды чтобы скомпилировать и запустить программу:
+Для использования программы, независимо от того, какую операционную систему вы используете, Linux, Mac или Windows, если на вашем компьютере установлен [JDK (Java Development Kit)](https://www.oracle.com/cis/java/technologies/downloads/) и [MySQL](https://dev.mysql.com/downloads/mysql/), вы можете выполнить следующие команды для запуска программы:
 
+ 1.  Создаем в MySQL базу данных search_engine с кодировкой utf8
+  ![](image/9.png)
+ 2. В файле конфигурации application.yaml прописываем свои: username, password
+  ![](image/10.png)
+ 3. При помощи консоли запускаем программу через:
 - javac (или javac.exe)
 - java (или  java.exe)
 

@@ -3,10 +3,10 @@ package searchengine.service;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
-import searchengine.model.IndexEntity;
-import searchengine.model.LemmaEntity;
-import searchengine.model.PageEntity;
-import searchengine.model.SiteEntity;
+import searchengine.model.Index;
+import searchengine.model.Lemma;
+import searchengine.model.Page;
+import searchengine.model.Site;
 import searchengine.repository.IndexRepository;
 import searchengine.repository.LemmaRepository;
 
@@ -24,15 +24,15 @@ public class LemmaServiceImpl implements LemmaService {
 
     @Override
     public synchronized void addLemma(Document document,
-                                      SiteEntity site,
-                                      PageEntity pageEntity) throws IOException {
+                                      Site site,
+                                      Page pageEntity) throws IOException {
 
         SearchLemmas searchLemmas1 = SearchLemmas.getLuceneMorphology();
         Map<String, Integer> lemmaParse = searchLemmas1.lemma(document);
         for (Map.Entry<String, Integer> lemma : lemmaParse.entrySet()) {
-            LemmaEntity lemmaEntity = lemmaRepository.findByLemmaAndSiteId(lemma.getKey(), site.getId());
+            Lemma lemmaEntity = lemmaRepository.findByLemmaAndSiteId(lemma.getKey(), site.getId());
             if (lemmaEntity == null) {
-                lemmaEntity = LemmaEntity.builder()
+                lemmaEntity = Lemma.builder()
                         .site(site)
                         .lemma(lemma.getKey())
                         .frequency(1)
@@ -41,9 +41,9 @@ public class LemmaServiceImpl implements LemmaService {
                 lemmaEntity.setFrequency(lemmaEntity.getFrequency() + 1);
             }
             lemmaRepository.save(lemmaEntity);
-            Optional<IndexEntity> indexEntity = indexRepository.findByLemmaIdAndPageId(lemmaEntity, pageEntity);
+            Optional<Index> indexEntity = indexRepository.findByLemmaIdAndPageId(lemmaEntity, pageEntity);
             if (indexEntity.isEmpty()) {
-                indexEntity = Optional.ofNullable(IndexEntity.builder()
+                indexEntity = Optional.ofNullable(Index.builder()
                         .lemmaId(lemmaEntity)
                         .pageId(pageEntity)
                         .rank(lemma.getValue())
@@ -55,8 +55,8 @@ public class LemmaServiceImpl implements LemmaService {
         }
     }
 
-    public boolean deleteLemma(PageEntity pageEntity) {
-        List<IndexEntity> indexList = indexRepository.findAllByPageId(pageEntity);
+    public boolean deleteLemma(Page pageEntity) {
+        List<Index> indexList = indexRepository.findAllByPageId(pageEntity);
         if (indexList.isEmpty())
             return false;
         indexRepository.deleteAllByPageId(pageEntity);

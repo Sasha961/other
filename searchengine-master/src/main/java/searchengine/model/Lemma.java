@@ -14,18 +14,18 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "lemma")
-public class LemmaEntity {
+public class Lemma {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     int id;
 
     @OneToMany(mappedBy = "lemmaId", cascade = {CascadeType.REMOVE, CascadeType.MERGE})
-    List<IndexEntity> index;
+    List<Index> index;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "site_id", nullable = false)
-    SiteEntity site;
+    Site site;
 
     @Column(nullable = false, columnDefinition = "VARCHAR(255)")
     String lemma;

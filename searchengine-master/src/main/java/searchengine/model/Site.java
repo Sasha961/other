@@ -1,7 +1,7 @@
 package searchengine.model;
 
 import lombok.*;
-import searchengine.dto.indexing.EnumStatusAtSite;
+import searchengine.dto.EnumStatusAtSite;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -14,14 +14,14 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "site")
-public class SiteEntity {
+public class Site {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     int id;
 
     @OneToMany(mappedBy = "siteId", cascade = {CascadeType.REMOVE, CascadeType.MERGE})
-    List<PageEntity> pageEntities;
+    List<Page> pageEntities;
 
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "ENUM('INDEXING', 'INDEXED', 'FAILED')")

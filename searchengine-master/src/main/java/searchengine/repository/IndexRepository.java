@@ -2,20 +2,20 @@ package searchengine.repository;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
-import searchengine.model.IndexEntity;
-import searchengine.model.LemmaEntity;
-import searchengine.model.PageEntity;
+import searchengine.model.Index;
+import searchengine.model.Lemma;
+import searchengine.model.Page;
 
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface IndexRepository extends CrudRepository<IndexEntity, Integer> {
+public interface IndexRepository extends CrudRepository<Index, Integer> {
 
-    List<IndexEntity> findAllByPageId(PageEntity pageEntity);
+    List<Index> findAllByPageId(Page pageEntity);
     @Transactional
-    void deleteAllByPageId(PageEntity pageEntity);
-    Optional<IndexEntity> findByLemmaIdAndPageId(LemmaEntity lemmaEntity, PageEntity pageEntity);
-    List<IndexEntity> findAllByLemmaId(LemmaEntity lemmaEntity);
+    void deleteAllByPageId(Page pageEntity);
+    Optional<Index> findByLemmaIdAndPageId(Lemma lemmaEntity, Page pageEntity);
+    List<Index> findAllByLemmaId(Lemma lemmaEntity);
 }

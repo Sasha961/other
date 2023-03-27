@@ -1,9 +1,9 @@
 package searchengine.repository;
 
 import org.springframework.stereotype.Repository;
-import searchengine.dto.search.EmptyRequestError;
-import searchengine.dto.search.SearchLemmaError;
-import searchengine.dto.search.SearchSettings;
+import searchengine.dto.Responce.search.EmptyRequestError;
+import searchengine.dto.Responce.search.SearchLemmaError;
+import searchengine.dto.Responce.search.SearchSettings;
 
 @Repository
 public interface SearchRepository {
