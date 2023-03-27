@@ -41,6 +41,7 @@ public class SearchServiceImpl implements SearchService {
         if (query.isEmpty()) {
             return new EmptyRequestError();
         }
+
         SearchLemmas searchLemmas;
         try {
             searchLemmas = SearchLemmas.getLuceneMorphology();
@@ -54,42 +55,33 @@ public class SearchServiceImpl implements SearchService {
                 .forEach(q -> baseFormLemmas.add(searchLemmas.baseFormLemma(q.toLowerCase())));
 
         List<Lemma> lemmaEntityList = new ArrayList<>();
-        if (site.isEmpty()) {
-            lemmaEntityList.addAll(searchLemmas(baseFormLemmas, null));
-        } else {
-            Optional<Site> siteEntity = siteRepository.findByUrl(site.get());
-            lemmaEntityList.addAll(searchLemmas(baseFormLemmas, siteEntity.get()));
-        }
+
+        Optional<Site> siteEntity = siteRepository.findByUrl(site.get());
+        lemmaEntityList.addAll(searchLemmas(baseFormLemmas, siteEntity.get()));
         if (lemmaEntityList.isEmpty()) {
             return new SearchLemmaError();
         }
         lemmaEntityList.sort(Comparator.comparing(Lemma::getFrequency));
         List<Page> pagesList = searchPages(lemmaEntityList);
+        List<SearchPageSettings> data = dataList(pagesList, lemmaEntityList, searchLemmas);
+        data.sort(Comparator.comparing(d -> d.relevance, Comparator.reverseOrder()));
+        SearchSettings searchSettings = new SearchSettings();
+        searchSettings.setResult(true);
+        searchSettings.setData(data);
+        searchSettings.setCount(pagesList.size());
+        return searchSettings;
+    }
+
+    private List<SearchPageSettings> dataList(List<Page> pagesList,
+                                              List<Lemma> lemmaEntityList,
+                                              SearchLemmas searchLemmas) {
         List<SearchPageSettings> data = new ArrayList<>();
         for (Page page : pagesList) {
             Document document = Jsoup.parse(page.getContent());
             String title = document.title();
             String[] pages = document.body().text().split(REGEX_SPLIT_SPACE);
-            int snippetPosition = -1;
-            for (int i = 0; i < pages.length; i++) {
-                for (Lemma lemmaEntity : lemmaEntityList) {
-                    if (!pages[i].toLowerCase().matches(REGEX))
-                        break;
-                    if (lemmaEntity.getLemma().equals(searchLemmas.baseFormLemma(pages[i].toLowerCase()))) {
-                        pages[i] = SELECTION[0] + pages[i] + SELECTION[1];
-                        if (snippetPosition == -1)
-                            snippetPosition = i;
-                    }
-                }
-            }
-            StringBuilder snippet = new StringBuilder();
-            if (snippetPosition != -1) {
-                int shiftLeft = (Math.max(snippetPosition - SHIFT, 0));
-                int shiftRight = (snippetPosition + SHIFT > pages.length ? pages.length - 1 : snippetPosition + SHIFT);
-                for (int j = shiftLeft; j < shiftRight; j++)
-                    snippet.append(pages[j]).append(" ");
-            }
-            snippet = new StringBuilder(snippet.toString().trim());
+            int snippetPosition = selectionAndSnippetPosition(pages, lemmaEntityList, searchLemmas);
+            StringBuilder snippet = searchSnippet(pages, snippetPosition);
             float relevance = relevancePage(page, lemmaEntityList);
             SearchPageSettings pageSettings = new SearchPageSettings();
             pageSettings.setRelevance(relevance / allRank);
@@ -100,12 +92,36 @@ public class SearchServiceImpl implements SearchService {
             pageSettings.setSiteName(page.getSiteId().getName());
             data.add(pageSettings);
         }
-        data.sort(Comparator.comparing(d -> d.relevance, Comparator.reverseOrder()));
-        SearchSettings searchSettings = new SearchSettings();
-        searchSettings.setResult(true);
-        searchSettings.setData(data);
-        searchSettings.setCount(pagesList.size());
-        return searchSettings;
+        return data;
+    }
+
+    private StringBuilder searchSnippet(String[] pages, int snippetPosition) {
+        StringBuilder snippet = new StringBuilder();
+        if (snippetPosition != -1) {
+            int shiftLeft = (Math.max(snippetPosition - SHIFT, 0));
+            int shiftRight = (snippetPosition + SHIFT > pages.length ? pages.length - 1 : snippetPosition + SHIFT);
+            for (int j = shiftLeft; j < shiftRight; j++)
+                snippet.append(pages[j]).append(" ");
+        }
+        return new StringBuilder(snippet.toString().trim());
+    }
+
+    private int selectionAndSnippetPosition(String[] pages,
+                                            List<Lemma> lemmaEntityList,
+                                            SearchLemmas searchLemmas) {
+        int snippetPosition = -1;
+        for (int i = 0; i < pages.length; i++) {
+            for (Lemma lemmaEntity : lemmaEntityList) {
+                if (!pages[i].toLowerCase().matches(REGEX))
+                    break;
+                if (lemmaEntity.getLemma().equals(searchLemmas.baseFormLemma(pages[i].toLowerCase()))) {
+                    pages[i] = SELECTION[0] + pages[i] + SELECTION[1];
+                    if (snippetPosition == -1)
+                        snippetPosition = i;
+                }
+            }
+        }
+        return snippetPosition;
     }
 
     private List<Lemma> searchLemmas(List<String> baseFormLemmas, Site siteEntity) {
@@ -139,7 +155,6 @@ public class SearchServiceImpl implements SearchService {
         indexEntitiesList.stream()
                 .filter(indexEntity -> !pagesList.contains(indexEntity.getPageId()))
                 .forEach(indexEntity -> pagesList.add(indexEntity.getPageId()));
-
         for (int i = 0; i < pagesList.size(); i++) {
             for (int j = 1; j < lemmaEntityList.size(); j++) {
                 Optional<Page> pageEntity = Optional.ofNullable(indexRepository
