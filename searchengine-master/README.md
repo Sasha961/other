@@ -24,7 +24,7 @@
 
 #### 1.  Создаем в MySQL базу данных search_engine с кодировкой utf8
   ![](image/9.png)
-#### 2. В файле конфигурации application.yaml прописываем свои: username, password
+#### 2. В файле конфигурации application.yaml прописываем свои: username и password
   ![](image/10.png)
 #### 3. При помощи консоли запускаем программу через:
 - javac (или javac.exe)
