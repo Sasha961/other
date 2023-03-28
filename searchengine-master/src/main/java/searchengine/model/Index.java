@@ -10,7 +10,7 @@ import javax.persistence.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "`index`")
+@Table(name = "`index`", indexes = @javax.persistence.Index(name = "multiIndex", columnList = "page_id, lemma_id"))
 public class Index {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

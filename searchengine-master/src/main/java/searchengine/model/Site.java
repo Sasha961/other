@@ -13,7 +13,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "site")
+@Table(name = "site", indexes = @javax.persistence.Index(name = "siteIndex", columnList = "url"))
 public class Site {
 
     @Id

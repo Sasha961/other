@@ -26,9 +26,11 @@ public class LemmaServiceImpl implements LemmaService {
     public synchronized void addLemma(Document document,
                                       Site site,
                                       Page pageEntity) throws IOException {
-
-        SearchLemmas searchLemmas1 = SearchLemmas.getLuceneMorphology();
-        Map<String, Integer> lemmaParse = searchLemmas1.lemma(document);
+        SearchLemmas searchLemmas = SearchLemmas.getLuceneMorphology();
+        Map<String, Integer> lemmaParse;
+        synchronized (searchLemmas) {
+            lemmaParse = searchLemmas.lemma(document);
+        }
         for (Map.Entry<String, Integer> lemma : lemmaParse.entrySet()) {
             Lemma lemmaEntity = lemmaRepository.findByLemmaAndSiteId(lemma.getKey(), site.getId());
             if (lemmaEntity == null) {

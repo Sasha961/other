@@ -26,8 +26,7 @@ public class EnumerationOfLinks extends RecursiveAction {
     private final Site site;
     private final LemmaService lemmaService;
     private final BaseSettings addToBase;
-    @Autowired
-    private Config config;
+    private final Config config;
 
     @Override
     protected void compute() {
@@ -59,7 +58,8 @@ public class EnumerationOfLinks extends RecursiveAction {
                             siteRepository,
                             site,
                             lemmaService,
-                            addToBase);
+                            addToBase,
+                            config);
                     enumerationOfLinks.fork();
                     linksJoin.add(enumerationOfLinks);
                 });

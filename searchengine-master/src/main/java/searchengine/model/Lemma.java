@@ -13,7 +13,7 @@ import java.util.List;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "lemma")
+@Table(name = "lemma", indexes = @javax.persistence.Index(name = "multiIndexLemma", columnList = "frequency, lemma"))
 public class Lemma {
 
     @Id

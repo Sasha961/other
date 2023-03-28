@@ -28,7 +28,7 @@ public class SearchServiceImpl implements SearchService {
     final IndexRepository indexRepository;
     final SitesList sitesList;
 
-    private static final int SHIFT = 10;
+    private static final int SHIFT = 20;
     private static final String REGEX = "[а-я]+";
     private static final String REGEX_SPLIT_SPACE = " +";
     private static final String[] SELECTION = {"<b>", "</b>"};
@@ -41,7 +41,6 @@ public class SearchServiceImpl implements SearchService {
         if (query.isEmpty()) {
             return new EmptyRequestError();
         }
-
         SearchLemmas searchLemmas;
         try {
             searchLemmas = SearchLemmas.getLuceneMorphology();
@@ -53,22 +52,32 @@ public class SearchServiceImpl implements SearchService {
         querySplit.stream()
                 .filter(q -> q.matches(REGEX) && searchLemmas.baseFormLemma(q.toLowerCase()) != null)
                 .forEach(q -> baseFormLemmas.add(searchLemmas.baseFormLemma(q.toLowerCase())));
-
-        List<Lemma> lemmaEntityList = new ArrayList<>();
-
-        Optional<Site> siteEntity = siteRepository.findByUrl(site.get());
-        lemmaEntityList.addAll(searchLemmas(baseFormLemmas, siteEntity.get()));
-        if (lemmaEntityList.isEmpty()) {
-            return new SearchLemmaError();
+        List<Optional<Site>> sites = new ArrayList<>();
+        if (site.isEmpty()) {
+            sitesList.getSites().stream()
+                    .map(s -> siteRepository.findByUrl(s.getUrl()))
+                    .forEach(sites::add);
+        } else {
+            sites.add(siteRepository.findByUrl(site.get()));
         }
-        lemmaEntityList.sort(Comparator.comparing(Lemma::getFrequency));
-        List<Page> pagesList = searchPages(lemmaEntityList);
-        List<SearchPageSettings> data = dataList(pagesList, lemmaEntityList, searchLemmas);
-        data.sort(Comparator.comparing(d -> d.relevance, Comparator.reverseOrder()));
         SearchSettings searchSettings = new SearchSettings();
+        float pageCount = 0;
+        List<SearchPageSettings> data = new ArrayList<>();
+        List<Page> pagesList = new ArrayList<>();
+        for (Optional<Site> siteEntity1 : sites) {
+            List<Lemma> lemmaEntityList = new ArrayList<>(searchLemmas(baseFormLemmas, siteEntity1.get(), pageCount));
+            if (lemmaEntityList.isEmpty()) {
+                return new SearchLemmaError();
+            }
+            lemmaEntityList.sort(Comparator.comparing(Lemma::getFrequency));
+            pagesList.addAll(searchPages(lemmaEntityList));
+            data.addAll(dataList(pagesList, lemmaEntityList, searchLemmas));
+        }
+        data.sort(Comparator.comparing(d -> d.relevance, Comparator.reverseOrder()));
         searchSettings.setResult(true);
         searchSettings.setData(data);
         searchSettings.setCount(pagesList.size());
+
         return searchSettings;
     }
 
@@ -98,9 +107,8 @@ public class SearchServiceImpl implements SearchService {
     private StringBuilder searchSnippet(String[] pages, int snippetPosition) {
         StringBuilder snippet = new StringBuilder();
         if (snippetPosition != -1) {
-            int shiftLeft = (Math.max(snippetPosition - SHIFT, 0));
             int shiftRight = (snippetPosition + SHIFT > pages.length ? pages.length - 1 : snippetPosition + SHIFT);
-            for (int j = shiftLeft; j < shiftRight; j++)
+            for (int j = snippetPosition; j < shiftRight; j++)
                 snippet.append(pages[j]).append(" ");
         }
         return new StringBuilder(snippet.toString().trim());
@@ -124,20 +132,14 @@ public class SearchServiceImpl implements SearchService {
         return snippetPosition;
     }
 
-    private List<Lemma> searchLemmas(List<String> baseFormLemmas, Site siteEntity) {
+    private List<Lemma> searchLemmas(List<String> baseFormLemmas, Site siteEntity, float pageCount) {
         List<Lemma> finalLemmaEntityList = new ArrayList<>();
         List<Lemma> lemmaEntityList = new ArrayList<>();
-        float pageCount;
-        if (Optional.ofNullable(siteEntity).isEmpty()) {
-            pageCount = pageRepository.count();
-            baseFormLemmas.forEach(lemma -> lemmaEntityList.addAll(lemmaRepository.findAllByLemma(lemma)));
-        } else {
-            pageCount = pageRepository.countBySiteId(siteEntity);
-            baseFormLemmas
-                    .stream().filter(lemma -> lemmaRepository.findByLemmaAndSiteId(lemma, siteEntity.getId()) != null)
-                    .forEach(lemma ->
-                            lemmaEntityList.add(lemmaRepository.findByLemmaAndSiteId(lemma, siteEntity.getId())));
-        }
+        pageCount += pageRepository.countBySiteId(siteEntity);
+        baseFormLemmas
+                .stream().filter(lemma -> lemmaRepository.findByLemmaAndSiteId(lemma, siteEntity.getId()) != null)
+                .forEach(lemma ->
+                        lemmaEntityList.add(lemmaRepository.findByLemmaAndSiteId(lemma, siteEntity.getId())));
 
         for (Lemma lemmaEntity : lemmaEntityList) {
             float lemmaCount = lemmaEntity.getFrequency();
@@ -166,6 +168,7 @@ public class SearchServiceImpl implements SearchService {
                 pagesList.remove(i);
                 i--;
             }
+
         }
         return pagesList;
     }

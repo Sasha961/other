@@ -3,6 +3,7 @@ package searchengine.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import searchengine.components.BaseSettings;
+import searchengine.config.Config;
 import searchengine.config.SitesList;
 import searchengine.dto.EnumStatusAtSite;
 import searchengine.dto.Responce.indexing.FullIndexingError;
@@ -31,6 +32,7 @@ public class IndexingServiceImpl implements IndexingService {
     private static ForkJoinPool forkJoinPool = new ForkJoinPool();
     private final List<Site> SiteEntitiesList = new ArrayList<>();
     private EnumerationOfLinks enumerationOfLinks;
+    private final Config config;
 
     private static final String LAST_ERROR_MESSAGE = "Остановлено пользователем";
 
@@ -52,7 +54,7 @@ public class IndexingServiceImpl implements IndexingService {
             executorService.submit(() -> {
                 baseSettings.addToBase(sites.getUrl() + "/", site);
                 enumerationOfLinks = new EnumerationOfLinks(site.getUrl(),
-                        pageRepository, siteRepository, site, lemmaService, baseSettings);
+                        pageRepository, siteRepository, site, lemmaService, baseSettings, config);
                 forkJoinPool.invoke(enumerationOfLinks);
                 site.setStatus(EnumStatusAtSite.INDEXED);
                 siteRepository.save(site);
