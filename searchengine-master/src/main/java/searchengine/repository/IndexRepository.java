@@ -16,6 +16,6 @@ public interface IndexRepository extends CrudRepository<Index, Integer> {
     List<Index> findAllByPageId(Page pageEntity);
     @Transactional
     void deleteAllByPageId(Page pageEntity);
-    Optional<Index> findByLemmaIdAndPageId(Lemma lemmaEntity, Page pageEntity);
+    Optional<Index> findByLemmaIdAndPageId(Lemma lemma, Page page);
     List<Index> findAllByLemmaId(Lemma lemmaEntity);
 }
