@@ -3,6 +3,7 @@ package searchengine.service;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.springframework.data.jpa.repository.support.QuerydslJpaRepository;
 import org.springframework.stereotype.Service;
 import searchengine.config.SitesList;
 import searchengine.dto.Responce.search.EmptyRequestError;
@@ -153,14 +154,15 @@ public class SearchServiceImpl implements SearchService {
         List<Index> indexEntitiesList = indexRepository.findAllByLemmaId(lemmaEntityList.get(0));
         List<Page> pagesList = new ArrayList<>();
         indexEntitiesList.stream()
-                .filter(index -> !pagesList.contains(index.getPageId()))
-                .forEach(index -> pagesList.add(index.getPageId()));
+                .map(index -> pageRepository.findById(index.getPageId().getId()).get())
+                .filter(index -> !pagesList.contains(index))
+                .forEach(pagesList::add);
         for (int i = 0; i < pagesList.size(); i++) {
             for (int j = 1; j < lemmaEntityList.size(); j++) {
                 Optional<Index> indexEntity = indexRepository
                         .findByLemmaIdAndPageId(lemmaEntityList.get(j), pagesList.get(i));
                 if (indexEntity.isPresent()) {
-                    allRank += relevancePage(indexEntity.get().getPageId(), lemmaEntityList);
+                    allRank += relevancePage(pagesList.get(i), lemmaEntityList);
                     continue;
                 }
                 pagesList.remove(i);
@@ -170,14 +172,15 @@ public class SearchServiceImpl implements SearchService {
         return pagesList;
     }
 
-    private float relevancePage(Page page, List<Lemma> lemmaEntityList) {
+    private float relevancePage(Page page, List<Lemma> lemmaEntityLsit) {
         float rank = 0;
-        for (Lemma lemmaEntity : lemmaEntityList) {
+            for (Lemma lemma : lemmaEntityLsit) {
 
-            Optional<Index> rankLemma = indexRepository.findByLemmaIdAndPageId(lemmaEntity, page);
-
-            rank += rankLemma.get().getRank();
-        }
+                Optional<Index> rankLemma = indexRepository.findByLemmaIdAndPageId(lemma, page);
+                if (rankLemma.isPresent()) {
+                    rank += rankLemma.get().getRank();
+                }
+            }
         return rank;
     }
 }
