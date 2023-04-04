@@ -3,21 +3,21 @@ package searchengine.service;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.springframework.data.jpa.repository.support.QuerydslJpaRepository;
 import org.springframework.stereotype.Service;
 import searchengine.config.SitesList;
+import searchengine.dto.PageAndRank;
 import searchengine.dto.Responce.search.EmptyRequestError;
 import searchengine.dto.Responce.search.SearchLemmaError;
 import searchengine.dto.Responce.search.SearchPageSettings;
 import searchengine.dto.Responce.search.SearchSettings;
 import searchengine.model.Index;
 import searchengine.model.Lemma;
-import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.repository.*;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -51,55 +51,62 @@ public class SearchServiceImpl implements SearchService {
         Set<String> querySplit = new HashSet<>(Arrays.asList(query.split(REGEX_SPLIT_SPACE)));
         List<String> baseFormLemmas = new ArrayList<>();
         querySplit.stream()
-                .filter(q -> q.matches(REGEX) && searchLemmas.baseFormLemma(q.toLowerCase()) != null)
+                .filter(q -> q.matches(REGEX)
+                        && searchLemmas.baseFormLemma(q.toLowerCase()) != null
+                        && lemmaRepository.countByLemma(q) > 0)
                 .forEach(q -> baseFormLemmas.add(searchLemmas.baseFormLemma(q.toLowerCase())));
-        List<Optional<Site>> sites = new ArrayList<>();
+
+        if (baseFormLemmas.isEmpty()) {
+            return new SearchLemmaError();
+        }
+
+        List<Site> sites = new ArrayList<>();
         if (site.isEmpty()) {
             sitesList.getSites().stream()
                     .map(s -> siteRepository.findByUrl(s.getUrl()))
-                    .forEach(sites::add);
-        } else {
-            sites.add(siteRepository.findByUrl(site.get()));
-        }
-        float pageCount = 0;
-        List<Page> pagesList = new ArrayList<>();
-        List<SearchPageSettings> data = new ArrayList<>();
+                    .forEach(s -> sites.add(s.get()));
+        } else
+            sites.add(siteRepository.findByUrl(site.get()).get());
+        List<PageAndRank> pagesList = new ArrayList<>();
         SearchSettings searchSettings = new SearchSettings();
-        for (Optional<Site> siteEntity1 : sites) {
-            List<Lemma> lemmaEntityList = new ArrayList<>(searchLemmas(baseFormLemmas, siteEntity1.get(), pageCount));
-            if (lemmaEntityList.isEmpty()) {
-                return new SearchLemmaError();
-            }
-            lemmaEntityList.sort(Comparator.comparing(Lemma::getFrequency));
+
+        for (Site siteEntity : sites) {
+            List<Lemma> lemmaEntityList = baseFormLemmas.stream()
+                    .map(baseLemma -> lemmaRepository.findByLemmaAndSiteId(baseLemma, siteEntity.getId()))
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
             pagesList.addAll(searchPages(lemmaEntityList));
-            data.addAll(dataList(pagesList, lemmaEntityList, searchLemmas));
         }
+        List<SearchPageSettings> data = new ArrayList<>(dataList(pagesList, baseFormLemmas, searchLemmas));
         data.sort(Comparator.comparing(d -> d.relevance, Comparator.reverseOrder()));
         searchSettings.setResult(true);
         searchSettings.setData(data);
-        searchSettings.setCount(pagesList.size());
+        searchSettings.setCount(data.size());
         return searchSettings;
     }
 
-    private List<SearchPageSettings> dataList(List<Page> pagesList,
-                                              List<Lemma> lemmaEntityList,
+    private List<SearchPageSettings> dataList(List<PageAndRank> pagesList,
+                                              List<String> baseFormLemmas,
                                               SearchLemmas searchLemmas) {
         List<SearchPageSettings> data = new ArrayList<>();
-        for (Page page : pagesList) {
-            Document document = Jsoup.parse(page.getContent());
+        for (PageAndRank page : pagesList) {
+            Document document = Jsoup.parse(page.getPage().getContent());
             String title = document.title();
             String[] pages = document.body().text().split(REGEX_SPLIT_SPACE);
-            int snippetPosition = selectionAndSnippetPosition(pages, lemmaEntityList, searchLemmas);
+            int snippetPosition = selectionAndSnippetPosition(pages, baseFormLemmas, searchLemmas);
             StringBuilder snippet = searchSnippet(pages, snippetPosition);
-            float relevance = relevancePage(page, lemmaEntityList);
             SearchPageSettings pageSettings = new SearchPageSettings();
-            pageSettings.setRelevance(relevance / allRank);
-            pageSettings.setUri(page.getPath());
+            pageSettings.setRelevance(page.getRank() / allRank);
+            pageSettings.setUri(page.getPage().getPath());
             pageSettings.setTitle(title);
-            pageSettings.setSite(page.getSiteId().getUrl());
+            pageSettings.setSite(page.getPage().getSiteId().getUrl());
             pageSettings.setSnippet(snippet.toString());
-            pageSettings.setSiteName(page.getSiteId().getName());
+            pageSettings.setSiteName(page.getPage().getSiteId().getName());
+            if (data.contains(pageSettings)) {
+                continue;
+            }
             data.add(pageSettings);
+
         }
         return data;
     }
@@ -115,14 +122,14 @@ public class SearchServiceImpl implements SearchService {
     }
 
     private int selectionAndSnippetPosition(String[] pages,
-                                            List<Lemma> lemmaEntityList,
+                                            List<String> baseFormLemmas,
                                             SearchLemmas searchLemmas) {
         int snippetPosition = -1;
         for (int i = 0; i < pages.length; i++) {
-            for (Lemma lemmaEntity : lemmaEntityList) {
+            for (String lemma : baseFormLemmas) {
                 if (!pages[i].toLowerCase().matches(REGEX))
                     break;
-                if (lemmaEntity.getLemma().equals(searchLemmas.baseFormLemma(pages[i].toLowerCase()))) {
+                if (lemma.equals(searchLemmas.baseFormLemma(pages[i].toLowerCase()))) {
                     pages[i] = SELECTION[0] + pages[i] + SELECTION[1];
                     if (snippetPosition == -1)
                         snippetPosition = i;
@@ -132,55 +139,35 @@ public class SearchServiceImpl implements SearchService {
         return snippetPosition;
     }
 
-    private List<Lemma> searchLemmas(List<String> baseFormLemmas, Site siteEntity, float pageCount) {
-        List<Lemma> finalLemmaEntityList = new ArrayList<>();
-        List<Lemma> lemmaEntityList = new ArrayList<>();
-        pageCount += pageRepository.countBySiteId(siteEntity);
-        baseFormLemmas
-                .stream().filter(lemma -> lemmaRepository.findByLemmaAndSiteId(lemma, siteEntity.getId()) != null)
-                .forEach(lemma ->
-                        lemmaEntityList.add(lemmaRepository.findByLemmaAndSiteId(lemma, siteEntity.getId())));
-        for (Lemma lemmaEntity : lemmaEntityList) {
-            float lemmaCount = lemmaEntity.getFrequency();
-            float percent = (lemmaCount / pageCount) * 100;
-            if (percent > 85 && finalLemmaEntityList.size() >= 1)
-                continue;
-            finalLemmaEntityList.add(lemmaEntity);
-        }
-        return finalLemmaEntityList;
+    private boolean frequentMatch(Lemma lemma, float pageCount, int length) {
+        float lemmaCount = lemma.getFrequency();
+        float percent = (lemmaCount / pageCount) * 100;
+        return percent > 85 && length < 1;
     }
 
-    private List<Page> searchPages(List<Lemma> lemmaEntityList) {
+    private List<PageAndRank> searchPages(List<Lemma> lemmaEntityList) {
+        List<PageAndRank> pagesList = new ArrayList<>();
+        lemmaEntityList.sort(Comparator.comparing(Lemma::getFrequency));
         List<Index> indexEntitiesList = indexRepository.findAllByLemmaId(lemmaEntityList.get(0));
-        List<Page> pagesList = new ArrayList<>();
-        indexEntitiesList.stream()
-                .map(index -> pageRepository.findById(index.getPageId().getId()).get())
-                .filter(index -> !pagesList.contains(index))
-                .forEach(pagesList::add);
-        for (int i = 0; i < pagesList.size(); i++) {
-            for (int j = 1; j < lemmaEntityList.size(); j++) {
-                Optional<Index> indexEntity = indexRepository
-                        .findByLemmaIdAndPageId(lemmaEntityList.get(j), pagesList.get(i));
-                if (indexEntity.isPresent()) {
-                    allRank += relevancePage(pagesList.get(i), lemmaEntityList);
+        float pageCount = pageRepository.countBySiteId(lemmaEntityList.get(0).getSite());
+        for (int i = 0; i < indexEntitiesList.size(); i++) {
+            for (Lemma lemma : lemmaEntityList) {
+                float rank = 0;
+                if (indexRepository.findByLemmaIdAndPageId(lemma,
+                        indexEntitiesList.get(i).getPageId()).isEmpty() ||
+                        frequentMatch(lemma, pageCount, indexEntitiesList.size())) {
+                    indexEntitiesList.remove(i);
+                    i--;
                     continue;
                 }
-                pagesList.remove(i);
-                i--;
+                allRank += indexEntitiesList.get(i).getRank();
+                rank += indexEntitiesList.get(i).getRank();
+                PageAndRank pageAndRank = new PageAndRank();
+                pageAndRank.setPage(indexEntitiesList.get(i).getPageId());
+                pageAndRank.setRank(rank);
+                pagesList.add(pageAndRank);
             }
         }
         return pagesList;
-    }
-
-    private float relevancePage(Page page, List<Lemma> lemmaEntityLsit) {
-        float rank = 0;
-            for (Lemma lemma : lemmaEntityLsit) {
-
-                Optional<Index> rankLemma = indexRepository.findByLemmaIdAndPageId(lemma, page);
-                if (rankLemma.isPresent()) {
-                    rank += rankLemma.get().getRank();
-                }
-            }
-        return rank;
     }
 }

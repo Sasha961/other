@@ -5,7 +5,7 @@ import org.springframework.stereotype.Repository;
 import searchengine.model.Lemma;
 
 import javax.transaction.Transactional;
-import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface LemmaRepository extends JpaRepository<Lemma, Integer> {
@@ -14,6 +14,5 @@ public interface LemmaRepository extends JpaRepository<Lemma, Integer> {
     @Transactional
     void deleteAllBySiteId(int id);
     int countBySiteId(int id);
-
-
+    int countByLemma(String q);
 }
