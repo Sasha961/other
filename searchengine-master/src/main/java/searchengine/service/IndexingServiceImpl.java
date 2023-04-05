@@ -25,7 +25,6 @@ import java.util.concurrent.*;
 public class IndexingServiceImpl implements IndexingService {
 
     private final SitesList sitesList;
-    private final LemmaService lemmaService;
     private final BaseSettings baseSettings;
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
@@ -54,7 +53,10 @@ public class IndexingServiceImpl implements IndexingService {
             executorService.submit(() -> {
                 baseSettings.addToBase(sites.getUrl() + "/", site);
                 enumerationOfLinks = new EnumerationOfLinks(site.getUrl(),
-                        pageRepository, siteRepository, site, lemmaService, baseSettings, config);
+                        pageRepository,
+                        site,
+                        baseSettings,
+                        config);
                 forkJoinPool.invoke(enumerationOfLinks);
                 site.setStatus(EnumStatusAtSite.INDEXED);
                 siteRepository.save(site);

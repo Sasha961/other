@@ -9,7 +9,6 @@ import searchengine.components.BaseSettings;
 import searchengine.config.Config;
 import searchengine.model.Site;
 import searchengine.repository.PageRepository;
-import searchengine.repository.SiteRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,13 +17,12 @@ import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
 
 @RequiredArgsConstructor
+@Component
 public class EnumerationOfLinks extends RecursiveAction {
     private final String link;
     private final PageRepository pageRepository;
-    private final SiteRepository siteRepository;
     private final Site site;
-    private final LemmaService lemmaService;
-    private final BaseSettings addToBase;
+    private final BaseSettings baseSettings;
     private final Config config;
 
     @Override
@@ -49,15 +47,13 @@ public class EnumerationOfLinks extends RecursiveAction {
                         .filter(link -> checkLink(link, site))
                         .forEach(link -> {
                             allLinks.add(link);
-                            addToBase.addToBase(link, site);
+                            baseSettings.addToBase(link, site);
                         });
                 allLinks.forEach(link -> {
                     EnumerationOfLinks enumerationOfLinks = new EnumerationOfLinks(link,
                             pageRepository,
-                            siteRepository,
                             site,
-                            lemmaService,
-                            addToBase,
+                            baseSettings,
                             config);
                     enumerationOfLinks.fork();
                     linksJoin.add(enumerationOfLinks);
