@@ -40,15 +40,15 @@ public class SearchLemmas {
     }
 
     public String baseFormLemma(String lemma) {
-        lemma = lemma.toLowerCase().replaceAll(NOT_REGEX, "");
-        if (lemma.isBlank()) {
+        String clearLemma = lemma.toLowerCase().replaceAll(NOT_REGEX, "");
+        if (clearLemma.isBlank()) {
             return null;
         }
-        List<String> wordBaseFormsInfo = luceneMorph.getMorphInfo(lemma);
+        List<String> wordBaseFormsInfo = luceneMorph.getMorphInfo(clearLemma);
         if (checkServiceUnits(wordBaseFormsInfo.get(0))) {
             return null;
         }
-        List<String> wordBaseForms = luceneMorph.getNormalForms(lemma);
+        List<String> wordBaseForms = luceneMorph.getNormalForms(clearLemma);
         if (wordBaseForms.get(0).matches(WORD_TYPE_REGEX)) {
             return null;
         }
