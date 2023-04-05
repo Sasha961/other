@@ -32,7 +32,6 @@ public class IndexingServiceImpl implements IndexingService {
     private final List<Site> SiteEntitiesList = new ArrayList<>();
     private EnumerationOfLinks enumerationOfLinks;
     private final Config config;
-
     private static final String LAST_ERROR_MESSAGE = "Остановлено пользователем";
 
     @Override
@@ -52,6 +51,7 @@ public class IndexingServiceImpl implements IndexingService {
             SiteEntitiesList.add(site);
             executorService.submit(() -> {
                 baseSettings.addToBase(sites.getUrl() + "/", site);
+//                enumerationOfLinks.addLinkAndSite(site.getUrl(), site);
                 enumerationOfLinks = new EnumerationOfLinks(site.getUrl(),
                         pageRepository,
                         site,

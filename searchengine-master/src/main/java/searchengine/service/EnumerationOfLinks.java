@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.select.Elements;
+import org.springframework.stereotype.Component;
 import searchengine.components.BaseSettings;
 import searchengine.config.Config;
 import searchengine.model.Site;
@@ -16,12 +17,23 @@ import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
 
 @RequiredArgsConstructor
+//@Component
 public class EnumerationOfLinks extends RecursiveAction {
     private final String link;
+
+//    private  String link;
+//    private Site site;
+
+//    private final EnumerationOfLinks enumerationOfLinks;
     private final PageRepository pageRepository;
     private final Site site;
     private final BaseSettings baseSettings;
     private final Config config;
+
+//    public void addLinkAndSite(String link, Site site){
+//        this.link = link;
+//        this.site = site;
+//    }
 
     @Override
     protected void compute() {
@@ -48,6 +60,7 @@ public class EnumerationOfLinks extends RecursiveAction {
                             baseSettings.addToBase(link, site);
                         });
                 allLinks.forEach(link -> {
+//                    enumerationOfLinks.addLinkAndSite(link ,site);
                     EnumerationOfLinks enumerationOfLinks = new EnumerationOfLinks(link,
                             pageRepository,
                             site,
