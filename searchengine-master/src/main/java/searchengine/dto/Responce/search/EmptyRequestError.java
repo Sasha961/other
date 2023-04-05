@@ -1,6 +1,7 @@
 package searchengine.dto.Responce.search;
 
 import lombok.Getter;
+import org.springframework.http.HttpStatus;
 import searchengine.repository.SearchRepository;
 
 @Getter

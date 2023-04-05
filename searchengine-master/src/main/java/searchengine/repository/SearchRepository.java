@@ -6,7 +6,7 @@ import searchengine.dto.Responce.search.SearchLemmaError;
 import searchengine.dto.Responce.search.SearchSettings;
 
 @Repository
-public interface SearchRepository {
+public interface SearchRepository{
 
     SearchSettings searchSettings = new SearchSettings();
 

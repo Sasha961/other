@@ -17,6 +17,7 @@ public class SearchLemmas {
     private static final String HTML = "html";
     private static final String WORD_REGEX = "([^а-я\\s])";
     private static final String SPACE_REGEX = "\\s+";
+    private static final String NOT_REGEX = "[^а-я]+";
 
     public static SearchLemmas getLuceneMorphology() throws IOException {
         LuceneMorphology luceneMorph = new RussianLuceneMorphology();
@@ -39,7 +40,7 @@ public class SearchLemmas {
     }
 
     public String baseFormLemma(String lemma) {
-
+        lemma = lemma.toLowerCase().replaceAll(NOT_REGEX, "");
         if (lemma.isBlank()) {
             return null;
         }
