@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.select.Elements;
-import org.springframework.stereotype.Component;
 import searchengine.components.BaseSettings;
 import searchengine.config.Config;
 import searchengine.model.Site;
