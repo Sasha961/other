@@ -17,7 +17,6 @@ import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
 
 @RequiredArgsConstructor
-@Component
 public class EnumerationOfLinks extends RecursiveAction {
     private final String link;
     private final PageRepository pageRepository;
