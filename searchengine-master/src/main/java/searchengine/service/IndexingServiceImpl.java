@@ -96,7 +96,7 @@ public class IndexingServiceImpl implements IndexingService {
     @Override
     public ResponseEntity<IndexingRepository> indexingPage(String url) {
         for (searchengine.config.Site site : sitesList.getSites()) {
-            if (url.toLowerCase().contains(site.getUrl().toLowerCase()) && url.toLowerCase().startsWith("https")) {
+            if (url.toLowerCase().contains(site.getUrl().toLowerCase()) && url.toLowerCase().contains("http")) {
                 Optional<Page> pageEntity = pageRepository.findByPath(url.replace(site.getUrl(), ""));
                 Optional<Site> siteEntity = siteRepository.findByUrl(site.getUrl());
                 writeLock.lock();
