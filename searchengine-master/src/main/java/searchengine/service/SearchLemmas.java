@@ -12,12 +12,12 @@ import java.util.*;
 public class SearchLemmas {
 
     private final LuceneMorphology luceneMorph;
-    private static final String WORD_TYPE_REGEX = "\\W\\w&&[^а-яА-Я\\s]";
+    private static final String WORD_TYPE_REGEX = "\\W\\w&&[^ёа-яЁА-Я\\s]";
     private static final String[] PARTICLES_NAMES = new String[]{"МЕЖД", "ПРЕДЛ", "СОЮЗ"};
     private static final String HTML = "html";
-    private static final String WORD_REGEX = "([^а-я\\s])";
+    private static final String WORD_REGEX = "([^ёа-я\\s])";
     private static final String SPACE_REGEX = "\\s+";
-    private static final String NOT_REGEX = "[^а-я]+";
+    private static final String NOT_REGEX = "[^ёа-я]+";
 
     public static SearchLemmas getLuceneMorphology() throws IOException {
         LuceneMorphology luceneMorph = new RussianLuceneMorphology();
@@ -31,10 +31,8 @@ public class SearchLemmas {
                 .map(this::baseFormLemma)
                 .filter(Objects::nonNull)
                 .forEach(lemma -> {
-                    if (lemmas.containsKey(lemma))
-                        lemmas.put(lemma, lemmas.get(lemma) + 1);
-                    else
-                        lemmas.put(lemma, 1);
+                    if (lemmas.containsKey(lemma)) lemmas.put(lemma, lemmas.get(lemma) + 1);
+                    else lemmas.put(lemma, 1);
                 });
         return lemmas;
     }

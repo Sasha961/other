@@ -5,7 +5,6 @@ import org.springframework.stereotype.Repository;
 import searchengine.model.Lemma;
 
 import javax.transaction.Transactional;
-import java.util.Optional;
 
 @Repository
 public interface LemmaRepository extends JpaRepository<Lemma, Integer> {

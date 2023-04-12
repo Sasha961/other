@@ -28,7 +28,7 @@ public class BaseSettings {
     final LemmaRepository lemmaRepository;
     final Config config;
 
-    public synchronized void addToBase(String link, Site site) {
+    public void addToBase(String link, Site site) {
         try {
             if (pageRepository.findByPathAndSiteId(link.replaceAll(site.getUrl(), ""), site).isPresent()){
                 return;

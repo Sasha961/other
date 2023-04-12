@@ -1,13 +1,14 @@
 package searchengine.service;
 
 
+import org.springframework.http.ResponseEntity;
 import searchengine.repository.IndexingRepository;
 
 public interface IndexingService {
-    IndexingRepository fullIndexingPages();
+    ResponseEntity<IndexingRepository> fullIndexingPages();
 
-    IndexingRepository stopIndexingPages();
+    ResponseEntity<IndexingRepository> stopIndexingPages();
 
-    IndexingRepository indexingPage(String url);
+    ResponseEntity<IndexingRepository> indexingPage(String url);
 
 }

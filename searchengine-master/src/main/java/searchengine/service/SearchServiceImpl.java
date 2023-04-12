@@ -32,18 +32,21 @@ public class SearchServiceImpl implements SearchService {
     final SitesList sitesList;
 
     private static final int SHIFT = 35;
-    private static final String REGEX = "[а-я]+";
-    private static final String NOT_REGEX = "[^а-я]+";
+    private static final String REGEX = "[ёа-я]+";
+    private static final String NOT_REGEX = "[^ёа-я]+";
     private static final String REGEX_SPLIT_SPACE = " +";
     private static final String[] SELECTION = {"<b>", "</b>"};
     private float allRank = 0;
     private int limitPage = 0;
+    private String checkQuery = "";
 
     @Override
     public ResponseEntity<SearchRepository> search(String query, Optional<String> site, int offset, int limit) {
-        if (query.isEmpty())
-            return new ResponseEntity<>(new EmptyRequestError(), HttpStatus.BAD_REQUEST);
-        SearchLemmas searchLemmas;
+        if (query.isEmpty()) return new ResponseEntity<>(new EmptyRequestError(), HttpStatus.BAD_REQUEST);
+        if (checkQuery.isEmpty() || !checkQuery.equals(query)) limitPage = limit;
+        else limitPage += limit;
+        checkQuery = query;
+            SearchLemmas searchLemmas;
         try {
             searchLemmas = SearchLemmas.getLuceneMorphology();
         } catch (IOException e) {
@@ -56,33 +59,27 @@ public class SearchServiceImpl implements SearchService {
                 .map(searchLemmas::baseFormLemma)
                 .filter(q -> q != null && lemmaRepository.countByLemma(q) > 0)
                 .forEach(baseFormLemmas::add);
-        if (baseFormLemmas.size() < 1) {
-            return new ResponseEntity<>(new SearchLemmaError(), HttpStatus.BAD_REQUEST);
-        }
+        if (baseFormLemmas.size() < 1) return new ResponseEntity<>(new SearchLemmaError(), HttpStatus.BAD_REQUEST);
         List<Site> sites = new ArrayList<>();
         if (site.isEmpty()) {
             sitesList.getSites().stream()
                     .map(s -> siteRepository.findByUrl(s.getUrl()))
                     .forEach(s -> sites.add(s.get()));
-        } else {
-            sites.add(siteRepository.findByUrl(site.get()).get());
-        }
+        } else sites.add(siteRepository.findByUrl(site.get()).get());
         List<PageAndRank> pagesList = new ArrayList<>();
         for (Site siteEntity : sites) {
             List<Lemma> lemmaEntityList = baseFormLemmas.stream()
                     .map(baseLemma -> lemmaRepository.findByLemmaAndSiteId(baseLemma, siteEntity.getId()))
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
-            if (lemmaEntityList.size() < 1) {
-                continue;
-            }
+            if (lemmaEntityList.size() < 1) continue;
             pagesList.addAll(searchPagesAndRank(lemmaEntityList));
         }
         List<SearchPageSettings> data = new ArrayList<>(dataList(pagesList, baseFormLemmas, searchLemmas));
         data.sort(Comparator.comparing(d -> d.relevance, Comparator.reverseOrder()));
         SearchSettings searchSettings = new SearchSettings();
         searchSettings.setResult(true);
-        searchSettings.setData(data.subList(offset, Math.min(limitPage += limit, data.size())));
+        searchSettings.setData(data.subList(offset, Math.min(limitPage, data.size())));
         searchSettings.setCount(data.size());
         return new ResponseEntity<>(searchSettings, HttpStatus.OK);
     }

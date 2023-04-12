@@ -3,7 +3,6 @@ package searchengine.model;
 import lombok.*;
 
 import javax.persistence.*;
-import java.util.List;
 
 @Getter
 @Setter
@@ -17,9 +16,6 @@ public class Page {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     int id;
-
-    @OneToMany(mappedBy = "pageId", cascade = {CascadeType.REMOVE, CascadeType.MERGE})
-    List<Index> pages;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "site_id", nullable = false)

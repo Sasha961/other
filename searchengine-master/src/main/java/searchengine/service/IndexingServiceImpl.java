@@ -1,6 +1,8 @@
 package searchengine.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import searchengine.components.BaseSettings;
 import searchengine.config.Config;
@@ -19,6 +21,9 @@ import searchengine.repository.SiteRepository;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @Service
 @RequiredArgsConstructor
@@ -33,11 +38,13 @@ public class IndexingServiceImpl implements IndexingService {
     private EnumerationOfLinks enumerationOfLinks;
     private final Config config;
     private static final String LAST_ERROR_MESSAGE = "Остановлено пользователем";
+    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+    private final Lock writeLock = readWriteLock.writeLock();
 
     @Override
-    public IndexingRepository fullIndexingPages() {
+    public ResponseEntity<IndexingRepository> fullIndexingPages() {
         if (forkJoinPool.getPoolSize() != 0)
-            return new FullIndexingError();
+            return new ResponseEntity<>(new FullIndexingError(), HttpStatus.BAD_REQUEST);
         ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         for (searchengine.config.Site sites : sitesList.getSites()) {
             if (siteRepository.findByUrl(sites.getUrl()).isPresent())
@@ -50,8 +57,9 @@ public class IndexingServiceImpl implements IndexingService {
             siteRepository.save(site);
             SiteEntitiesList.add(site);
             executorService.submit(() -> {
+                writeLock.lock();
                 baseSettings.addToBase(sites.getUrl() + "/", site);
-//                enumerationOfLinks.addLinkAndSite(site.getUrl(), site);
+                writeLock.unlock();
                 enumerationOfLinks = new EnumerationOfLinks(site.getUrl(),
                         pageRepository,
                         site,
@@ -62,13 +70,13 @@ public class IndexingServiceImpl implements IndexingService {
                 siteRepository.save(site);
             });
         }
-        return new ResultTrue();
+        return new ResponseEntity<>(new ResultTrue(), HttpStatus.OK);
     }
 
     @Override
-    public IndexingRepository stopIndexingPages() {
+    public ResponseEntity<IndexingRepository> stopIndexingPages() {
         if (forkJoinPool.getPoolSize() == 0)
-            return new StopIndexingError();
+            return new ResponseEntity<>(new StopIndexingError(), HttpStatus.BAD_REQUEST);
         SiteEntitiesList.stream()
                 .filter(site -> site.getStatus() == EnumStatusAtSite.INDEXING)
                 .forEach(site -> {
@@ -82,20 +90,22 @@ public class IndexingServiceImpl implements IndexingService {
             ex.printStackTrace();
         }
         forkJoinPool = new ForkJoinPool();
-        return new ResultTrue();
+        return new ResponseEntity<>(new ResultTrue(), HttpStatus.OK);
     }
 
     @Override
-    public IndexingRepository indexingPage(String url) {
+    public ResponseEntity<IndexingRepository> indexingPage(String url) {
         for (searchengine.config.Site site : sitesList.getSites()) {
-            if (url.contains(site.getName().toLowerCase())) {
+            if (url.toLowerCase().contains(site.getUrl().toLowerCase()) && url.toLowerCase().startsWith("https")) {
                 Optional<Page> pageEntity = pageRepository.findByPath(url.replace(site.getUrl(), ""));
                 Optional<Site> siteEntity = siteRepository.findByUrl(site.getUrl());
+                writeLock.lock();
                 pageEntity.ifPresent(baseSettings::deletePage);
                 baseSettings.addToBase(url, siteEntity.get());
-                return new ResultTrue();
+                writeLock.unlock();
+                return new ResponseEntity<>(new ResultTrue(), HttpStatus.OK);
             }
         }
-        return new IndexingPageError();
+        return new ResponseEntity<>(new IndexingPageError(), HttpStatus.BAD_REQUEST);
     }
 }

@@ -16,11 +16,11 @@ public class Index {
     @GeneratedValue(strategy = GenerationType.AUTO)
     int id;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "page_id", nullable = false)
     Page pageId;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "lemma_id", nullable = false)
     Lemma lemmaId;
 

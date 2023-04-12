@@ -16,10 +16,10 @@ spring:
 
 indexing-settings:
   sites:
-    - url: https://www.playback.ru
-      name: PlayBack.Ru
-    - url: https://nikoartgallery.com
-      name: NikoArtGallery.Ru
+    - url: http://www.playback.ru
+      name: PlayBack.ru
+    - url: https://ipfran.ru
+      name: IPFRAN.ru
 
 config:
   userAgent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:101.0) Gecko/20100101 Firefox/101.0

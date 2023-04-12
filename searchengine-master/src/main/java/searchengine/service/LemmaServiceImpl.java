@@ -23,9 +23,9 @@ public class LemmaServiceImpl implements LemmaService {
     private final IndexRepository indexRepository;
 
     @Override
-    public synchronized void addLemma(Document document,
-                                      Site site,
-                                      Page pageEntity) throws IOException {
+    public void addLemma(Document document,
+                         Site site,
+                         Page pageEntity) throws IOException {
         SearchLemmas searchLemmas = SearchLemmas.getLuceneMorphology();
         Map<String, Integer> lemmaParse = searchLemmas.lemma(document);
         for (Map.Entry<String, Integer> lemma : lemmaParse.entrySet()) {

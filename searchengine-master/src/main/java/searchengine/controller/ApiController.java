@@ -27,25 +27,25 @@ public class ApiController {
     }
 
     @GetMapping(value = "/startIndexing")
-    public IndexingRepository fullIndexing() {
+    public ResponseEntity<IndexingRepository> fullIndexing() {
         return indexingService.fullIndexingPages();
     }
 
     @GetMapping("/stopIndexing")
-    public IndexingRepository stopIndexing() {
+    public ResponseEntity<IndexingRepository> stopIndexing() {
         return indexingService.stopIndexingPages();
     }
 
     @PostMapping("/indexPage")
-    public IndexingRepository indexPage(@RequestParam String url) {
+    public ResponseEntity<IndexingRepository> indexPage(@RequestParam String url) {
         return indexingService.indexingPage(url);
     }
 
     @GetMapping("/search")
     public ResponseEntity<SearchRepository> search(@RequestParam String query,
-                                   @RequestParam(required = false) Optional<String> site,
-                                   @RequestParam Integer offset,
-                                   @RequestParam Integer limit) {
+                                                   @RequestParam(required = false) Optional<String> site,
+                                                   @RequestParam Integer offset,
+                                                   @RequestParam Integer limit) {
         return searchService.search(query, site, offset, limit);
     }
 }
