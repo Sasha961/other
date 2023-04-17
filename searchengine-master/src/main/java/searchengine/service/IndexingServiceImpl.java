@@ -1,6 +1,7 @@
 package searchengine.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -40,12 +41,13 @@ public class IndexingServiceImpl implements IndexingService {
     private static final String LAST_ERROR_MESSAGE = "Остановлено пользователем";
     private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
     private final Lock writeLock = readWriteLock.writeLock();
+    private ExecutorService executorService;
 
     @Override
     public ResponseEntity<IndexingRepository> fullIndexingPages() {
         if (forkJoinPool.getPoolSize() != 0)
             return new ResponseEntity<>(new FullIndexingError(), HttpStatus.BAD_REQUEST);
-        ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         for (searchengine.config.Site sites : sitesList.getSites()) {
             if (siteRepository.findByUrl(sites.getUrl()).isPresent())
                 baseSettings.deleteAllBySite(sites.getUrl());
@@ -85,7 +87,10 @@ public class IndexingServiceImpl implements IndexingService {
                     siteRepository.save(site);
                 });
         try {
-            forkJoinPool.shutdown();
+            while (!forkJoinPool.isTerminated() || !executorService.isTerminated()){
+                forkJoinPool.shutdownNow();
+                executorService.shutdownNow();
+            }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
