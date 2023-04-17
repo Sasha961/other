@@ -87,12 +87,13 @@ public class IndexingServiceImpl implements IndexingService {
                     siteRepository.save(site);
                 });
         try {
-            while (!forkJoinPool.isTerminated() || !executorService.isTerminated()){
+            while (!forkJoinPool.awaitTermination(1, TimeUnit.SECONDS) ||
+                    !executorService.awaitTermination(1, TimeUnit.SECONDS)){
                 forkJoinPool.shutdownNow();
                 executorService.shutdownNow();
             }
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
         }
         forkJoinPool = new ForkJoinPool();
         return new ResponseEntity<>(new ResultTrue(), HttpStatus.OK);
