@@ -87,6 +87,7 @@ public class IndexingServiceImpl implements IndexingService {
                     siteRepository.save(site);
                 });
         try {
+            enumerationOfLinks.isStop = true;
             while (!forkJoinPool.awaitTermination(2, TimeUnit.SECONDS) ||
                     !executorService.awaitTermination(2, TimeUnit.SECONDS)){
                 forkJoinPool.shutdownNow();

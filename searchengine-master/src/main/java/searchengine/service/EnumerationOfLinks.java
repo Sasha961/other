@@ -28,6 +28,8 @@ public class EnumerationOfLinks extends RecursiveAction {
     private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
     private final Lock writeLock = readWriteLock.writeLock();
 
+    public volatile boolean isStop = false;
+
 
     @Override
     protected void compute() {
@@ -61,6 +63,10 @@ public class EnumerationOfLinks extends RecursiveAction {
                     enumerationOfLinks.fork();
                     linksJoin.add(enumerationOfLinks);
                 });
+                if (isStop){
+                    linksJoin.clear();
+                    return;
+                }
                 if (!linksJoin.isEmpty()) linksJoin.forEach(ForkJoinTask::invokeAll);
             } catch (Exception e) {
                 e.printStackTrace();
