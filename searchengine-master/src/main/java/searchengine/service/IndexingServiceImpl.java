@@ -87,8 +87,8 @@ public class IndexingServiceImpl implements IndexingService {
                     siteRepository.save(site);
                 });
         try {
-            while (!forkJoinPool.awaitTermination(1, TimeUnit.SECONDS) ||
-                    !executorService.awaitTermination(1, TimeUnit.SECONDS)){
+            while (!forkJoinPool.awaitTermination(2, TimeUnit.SECONDS) ||
+                    !executorService.awaitTermination(2, TimeUnit.SECONDS)){
                 forkJoinPool.shutdownNow();
                 executorService.shutdownNow();
             }
