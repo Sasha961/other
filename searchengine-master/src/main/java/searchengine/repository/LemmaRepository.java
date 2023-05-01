@@ -8,7 +8,6 @@ import javax.transaction.Transactional;
 
 @Repository
 public interface LemmaRepository extends JpaRepository<Lemma, Integer> {
-
     Lemma findByLemmaAndSiteId(String lemma, int siteId);
     @Transactional
     void deleteAllBySiteId(int id);

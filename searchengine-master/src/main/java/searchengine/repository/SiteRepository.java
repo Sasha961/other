@@ -11,6 +11,7 @@ import java.util.Optional;
 public interface SiteRepository extends CrudRepository<Site, Integer> {
 
    Optional<Site> findByUrl(String url);
+
     @Transactional
     void deleteByUrl(String url);
 }

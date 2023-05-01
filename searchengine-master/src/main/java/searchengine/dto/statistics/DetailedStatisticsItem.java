@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DetailedStatisticsItem {
+
     private String url;
     private String name;
     private EnumStatusAtSite status;

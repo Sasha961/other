@@ -4,7 +4,6 @@ import lombok.Data;
 
 @Data
 public class SearchPageSettings {
-
     public String site;
     public String siteName;
     public String uri;

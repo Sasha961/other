@@ -7,7 +7,6 @@ import searchengine.dto.Responce.search.SearchSettings;
 
 @Repository
 public interface SearchRepository{
-
     SearchSettings searchSettings = new SearchSettings();
 
     EmptyRequestError emptyRequestError = new EmptyRequestError();

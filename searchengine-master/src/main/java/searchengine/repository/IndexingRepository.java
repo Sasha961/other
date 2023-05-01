@@ -8,7 +8,6 @@ import searchengine.dto.Responce.indexing.StopIndexingError;
 
 @Repository
 public interface IndexingRepository {
-
     ResultTrue resultTrue = new ResultTrue();
     FullIndexingError fullIndexingError = new FullIndexingError();
     StopIndexingError stopIndexingError = new StopIndexingError();

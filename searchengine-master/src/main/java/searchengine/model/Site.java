@@ -16,6 +16,7 @@ import java.util.List;
 @Table(name = "site", indexes = @javax.persistence.Index(name = "siteIndex", columnList = "url"))
 public class Site {
 
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     int id;

@@ -10,5 +10,5 @@ public interface LemmaService{
 
     void addLemma(Document document, Site site, Page pageEntity) throws IOException;
 
-    boolean deleteLemma(Page pageEntity);
+    void deleteLemma(Page pageEntity);
 }

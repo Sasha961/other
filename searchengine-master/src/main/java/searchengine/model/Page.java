@@ -12,7 +12,6 @@ import javax.persistence.*;
 @AllArgsConstructor
 @Table(name = "page")
 public class Page {
-
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     int id;

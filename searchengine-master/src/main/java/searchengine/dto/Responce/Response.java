@@ -8,6 +8,5 @@ import searchengine.service.SearchServiceImpl;
 public class Response {
 
     SearchServiceImpl searchService;
-
     HttpStatus httpStatus;
 }

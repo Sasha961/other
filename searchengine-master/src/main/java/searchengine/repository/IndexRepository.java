@@ -12,7 +12,6 @@ import java.util.Optional;
 
 @Repository
 public interface IndexRepository extends CrudRepository<Index, Integer> {
-
     List<Index> findAllByPageId(Page pageEntity);
     @Transactional
     void deleteAllByPageId(Page pageEntity);

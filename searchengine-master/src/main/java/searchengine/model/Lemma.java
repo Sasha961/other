@@ -15,7 +15,6 @@ import java.util.List;
 @NoArgsConstructor
 @Table(name = "lemma", indexes = @javax.persistence.Index(name = "multiIndexLemma", columnList = "frequency, lemma"))
 public class Lemma {
-
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     int id;

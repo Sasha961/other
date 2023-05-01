@@ -8,7 +8,6 @@ import java.util.List;
 
 @Data
 public class PageAndRank {
-
     List<Page> pageList = new ArrayList<>();
 
     public Page page;

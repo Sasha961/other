@@ -19,6 +19,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     private final PageRepository pageRepository;
     private final LemmaRepository lemmaRepository;
     private final SiteRepository siteRepository;
+
     @Override
     public StatisticsResponse getStatistics() {
         TotalStatistics total = new TotalStatistics();

@@ -11,6 +11,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class SearchLemmas {
 
+
     private final LuceneMorphology luceneMorph;
     private static final String WORD_TYPE_REGEX = "\\W\\w&&[^ёа-яЁА-Я\\s]";
     private static final String[] PARTICLES_NAMES = new String[]{"МЕЖД", "ПРЕДЛ", "СОЮЗ"};

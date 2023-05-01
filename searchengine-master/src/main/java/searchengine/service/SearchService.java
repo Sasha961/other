@@ -8,5 +8,6 @@ import java.util.Optional;
 
 public interface SearchService {
 
+
     ResponseEntity<SearchRepository> search(String query, Optional<String> site, int offset, int limit);
 }

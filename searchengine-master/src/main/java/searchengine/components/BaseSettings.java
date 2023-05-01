@@ -20,7 +20,6 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 public class BaseSettings {
-
     final PageRepository pageRepository;
     final SiteRepository siteRepository;
     final LemmaService lemmaService;

@@ -27,7 +27,6 @@ public class EnumerationOfLinks extends RecursiveAction {
     private final Config config;
     private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
     private final Lock writeLock = readWriteLock.writeLock();
-
     public volatile boolean isStop = false;
 
 

@@ -20,6 +20,7 @@ import java.util.Optional;
 public class LemmaServiceImpl implements LemmaService {
 
     private final LemmaRepository lemmaRepository;
+
     private final IndexRepository indexRepository;
 
     @Override
@@ -54,10 +55,10 @@ public class LemmaServiceImpl implements LemmaService {
         }
     }
 
-    public boolean deleteLemma(Page pageEntity) {
+    public void deleteLemma(Page pageEntity) {
         List<Index> indexList = indexRepository.findAllByPageId(pageEntity);
         if (indexList.isEmpty())
-            return false;
+            return;
         indexRepository.deleteAllByPageId(pageEntity);
         indexList.forEach(index -> {
             if (index.getLemmaId().getFrequency() > 1) {
@@ -67,6 +68,5 @@ public class LemmaServiceImpl implements LemmaService {
                 lemmaRepository.deleteById(index.getLemmaId().getId());
             }
         });
-        return true;
     }
 }

@@ -7,7 +7,6 @@ import java.util.List;
 
 @Data
 public class SearchSettings implements SearchRepository {
-
     boolean result;
     long count;
     List<SearchPageSettings> data;
