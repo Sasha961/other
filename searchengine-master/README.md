@@ -48,6 +48,49 @@
 
 ## Возможности
 
+### API
+В данном примере использован [Postman](https://www.postman.com/downloads/)
+
+#### Запуск индексации:
+Get - запрос http://localhost:8080/api/startIndexing
+
+- При успешном запуске
+![](image/start.png)
+
+- При неудаче
+![](image/startFalse.png)
+
+
+#### Остановка индексации: 
+
+Get-запрос http://localhost:8080/api/stopIndexing
+
+- При успешной остановке
+![](image/stop.png)
+
+- Если остановка уже завершена или индексация не запущена
+![](image/stopfalse.png)
+
+#### Статистика:
+
+Get-запрос http://localhost:8080/api/statistics
+
+![](image/statistics.png)
+
+#### Пере-индексация существующей или добавление странницы(добавление произойдет, только если такая странница существует на заданном сайте):
+
+Post - запрос http://localhost:8080/api/indexPage?url=http://www.playback.ru/basket.html
+
+![](image/indexPage.png)
+
+#### Поиск:
+
+Get-запрос http://localhost:8080/api/search?query=метро&site=http://www.playback.ru&offset=0&limit=20
+
+![](image/search.png)
+
+
+### Web - интерфейс 
 Во вкладке DASHBOARD можно увидеть статистику по поиску 
 
 - Количество сайтов которые мы указали в файле конфигурации

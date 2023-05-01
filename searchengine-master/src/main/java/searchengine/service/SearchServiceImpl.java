@@ -152,6 +152,7 @@ public class SearchServiceImpl implements SearchService {
 
     private List<PageAndRank> addPageAndRank(List<Lemma> lemmaList, List<PageAndRank> pageAndRankList) {
         if (lemmaList.size() < 2) {
+            pageAndRankList.forEach(pageAndRank -> allRank += pageAndRank.rank);
             return pageAndRankList;
         }
         for (int i = 1; i < lemmaList.size(); i++) {
