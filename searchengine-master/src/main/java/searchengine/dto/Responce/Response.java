@@ -1,4 +1,4 @@
-package searchengine.dto.Responce;
+package searchengine.dto.responce;
 
 import lombok.Data;
 import org.springframework.http.HttpStatus;

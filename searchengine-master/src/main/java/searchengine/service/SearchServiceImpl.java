@@ -8,10 +8,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import searchengine.config.SitesList;
 import searchengine.dto.PageAndRank;
-import searchengine.dto.Responce.search.EmptyRequestError;
-import searchengine.dto.Responce.search.SearchLemmaError;
-import searchengine.dto.Responce.search.SearchPageSettings;
-import searchengine.dto.Responce.search.SearchSettings;
+import searchengine.dto.responce.search.EmptyRequestError;
+import searchengine.dto.responce.search.SearchLemmaError;
+import searchengine.dto.responce.search.SearchPageSettings;
+import searchengine.dto.responce.search.SearchSettings;
 import searchengine.model.Index;
 import searchengine.model.Lemma;
 import searchengine.model.Site;
@@ -41,13 +41,14 @@ public class SearchServiceImpl implements SearchService {
     private int limitPage = 0;
     private String checkQuery = "";
 
+
     @Override
     public ResponseEntity<SearchRepository> search(String query, Optional<String> site, int offset, int limit) {
         if (query.isEmpty()) return new ResponseEntity<>(new EmptyRequestError(), HttpStatus.BAD_REQUEST);
         if (checkQuery.isEmpty() || !checkQuery.equals(query)) limitPage = limit;
         else limitPage += limit;
         checkQuery = query;
-            SearchLemmas searchLemmas;
+        SearchLemmas searchLemmas;
         try {
             searchLemmas = SearchLemmas.getLuceneMorphology();
         } catch (IOException e) {
@@ -124,10 +125,10 @@ public class SearchServiceImpl implements SearchService {
         int snippetPosition = -1;
         for (int i = 0; i < pages.length; i++) {
             for (String lemma : baseFormLemmas) {
-                String clearPage = pages[i].toLowerCase().replaceAll(NOT_REGEX, "");
-                if (!clearPage.matches(REGEX))
+                String clearWorld = pages[i].toLowerCase().replaceAll(NOT_REGEX, "");
+                if (!clearWorld.matches(REGEX))
                     break;
-                if (lemma.toLowerCase().equals(searchLemmas.baseFormLemma(clearPage))) {
+                if (lemma.toLowerCase().equals(searchLemmas.baseFormLemma(clearWorld))) {
                     pages[i] = SELECTION[0] + pages[i] + SELECTION[1];
                     if (snippetPosition == -1)
                         snippetPosition = i;

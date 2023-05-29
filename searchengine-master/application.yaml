@@ -5,7 +5,7 @@ spring:
   datasource:
     username: root
     password: 608370
-    url: jdbc:mysql://localhost:3306/search_engine?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true&useUnicode=yes&characterEncoding=UTF-8&characterSetResults=UTF-8
+    url: jdbc:mysql://localhost:3306/searchengine?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true&useUnicode=yes&characterEncoding=UTF-8&characterSetResults=UTF-8
   jpa:
     properties:
       hibernate:
@@ -16,10 +16,10 @@ spring:
 
 indexing-settings:
   sites:
-    - url: http://www.playback.ru
-      name: PlayBack.ru
-    - url: https://ipfran.ru
-      name: IPFRan.ru
+    - url: https://et-cetera.ru/mobile
+      name: Et-Cetera.ru
+    - url: https://www.svetlovka.ru
+      name: Svetlovka.ru
 
 config:
   userAgent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:101.0) Gecko/20100101 Firefox/101.0
