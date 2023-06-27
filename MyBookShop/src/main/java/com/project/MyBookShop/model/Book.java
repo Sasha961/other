@@ -1,22 +1,20 @@
 package com.project.MyBookShop.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.Data;
 
 import java.util.Date;
 
 @Entity
-@Getter
-@Setter
+@Data
+@Table(name = "book")
 public class Book {
 
     @jakarta.persistence.Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Integer Id;
+
+
 
     @Column(name = "pub_date", nullable = false)
     public Date pubDate;

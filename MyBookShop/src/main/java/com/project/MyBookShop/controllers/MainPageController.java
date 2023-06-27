@@ -1,15 +1,16 @@
 package com.project.MyBookShop.controllers;
 
 import com.project.MyBookShop.dto.ListBooks;
+import com.project.MyBookShop.dto.SearchWord;
 import com.project.MyBookShop.model.Book;
+import com.project.MyBookShop.model.Book2author;
 import com.project.MyBookShop.service.BookService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -25,25 +26,58 @@ public class MainPageController {
     }
 
     @ModelAttribute("recommendedBooks")
-    public List<Book> recommendedBooks() {
+    public List<Book2author> recommendedBooks() {
         return bookService.getRecommendedBooks(0, 6).getContent();
     }
 
-    @GetMapping("/book/recommended")
+    @GetMapping("/books/recommended")
     @ResponseBody
-    public ListBooks getBooksPage(@RequestParam("offset") Integer offset,
-                                  @RequestParam("limit") Integer limit) {
+    public ListBooks getRecommendedBooksPage(@RequestParam("offset") Integer offset,
+                                             @RequestParam("limit") Integer limit) {
         return new ListBooks(bookService.getRecommendedBooks(offset, limit).getContent());
     }
 
-    @ModelAttribute("booksList")
-    public List<Book> bookList(){
+    @ModelAttribute("recentBooks")
+    public List<Book2author> recentBooks(){
         return bookService.getRecommendedBooks(0, 10).getContent();
     }
 
-    @ModelAttribute("recentBooks")
-    public List<Book> recentBooks() {
+    @GetMapping("/books/recentBooks")
+    @ResponseBody
+    public ListBooks getRecentBooksPage(@RequestParam("offset") Integer offset,
+                                        @RequestParam("limit") Integer limit) {
+        return new ListBooks(bookService.getRecommendedBooks(offset, limit).getContent());
+    }
+
+    @ModelAttribute("popular")
+    public List<Book2author> popularBooks(){
         return bookService.getRecommendedBooks(0, 10).getContent();
+    }
+
+    @GetMapping("/books/popularBooks")
+    @ResponseBody
+    public ListBooks getPopularBooksPage(@RequestParam("offset") Integer offset,
+                                        @RequestParam("limit") Integer limit) {
+        return new ListBooks(bookService.getRecommendedBooks(offset, limit).getContent());
+    }
+
+    @GetMapping(value = {"/search", "/search/{searchWord}"})
+    public String getSearchResult(@PathVariable(value = "searchWord", required = false) SearchWord searchWord, Model model){
+        model.addAttribute("searchWord", searchWord);
+        model.addAttribute("searchResults", bookService.getSearchPage(searchWord.getWord(), 0, 20).getContent());
+        return "/search/index";
+    }
+
+
+
+    @ModelAttribute("searchWord")
+    public SearchWord searchWord(){
+        return new SearchWord();
+    }
+
+    @ModelAttribute("searchResults")
+    public List<Book> searchResults(){
+        return new ArrayList<>();
     }
 
     @GetMapping("/signin")
@@ -81,16 +115,18 @@ public class MainPageController {
         return "/postponed";
     }
 
+    @GetMapping("/my")
+    public String my(){
+        return "/my";
+    }
 
-//    @ModelAttribute("isSale")
-//    public boolean isSale(Book book){
-//        return bookService.isSale(book);
-//    }
-//
-//    @GetMapping("/books/recent")
-//    public ListBooks getRecentBooks(@RequestParam("offset") Integer offset,
-//                                    @RequestParam("limit") Integer limit){
-//        return new ListBooks(bookService.getRecentBooks(offset, limit).getContent());
-//    }
+    @GetMapping("/profile")
+    public String profile(){
+        return "/profile";
+    }
 
+    @GetMapping("/myarchive")
+    public String myArchive(){
+        return "/myarchive";
+    }
 }

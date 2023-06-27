@@ -1,10 +1,12 @@
 package com.project.MyBookShop.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 @Entity
+@Data
 @Table(name = "author")
-public class author {
+public class Author {
 
     @jakarta.persistence.Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
