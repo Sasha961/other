@@ -2,6 +2,15 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/example/redisJava" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/socialweb-master/admin-panel-microservice" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/socialweb-master/authorization" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/socialweb-master/eureka-server" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/socialweb-master/friends-microservice" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/socialweb-master/frontend" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/socialweb-master/gateway" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/socialweb-master/messages_microservice" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/socialweb-master/posts_microservice" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/socialweb-master/search-microservice" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/socialweb-master/users_microservice" vcs="Git" />
   </component>
 </project>
