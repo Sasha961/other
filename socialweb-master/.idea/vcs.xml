@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$/.." vcs="Git" />
     <mapping directory="$PROJECT_DIR$/admin-panel-microservice" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/authorization" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/eureka-server" vcs="Git" />
@@ -9,6 +10,7 @@
     <mapping directory="$PROJECT_DIR$/gateway" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/messages_microservice" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/posts_microservice" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/search-microservice" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/users_microservice" vcs="Git" />
   </component>
 </project>
