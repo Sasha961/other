@@ -1,4 +1,6 @@
 spring:
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -7,8 +9,4 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
-
-#liquibase:
-#  enabled: true
-#  changeLog: db/changelog/db:changelog-master-test.yaml
 
