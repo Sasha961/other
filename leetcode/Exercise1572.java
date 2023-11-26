@@ -6,9 +6,10 @@ public class Exercise1572 {
 
     public static int diagonalSum(int[][] mat) {
         int sum = 0;
-        for (int i = 1; i < mat.length; i++) {
-            for (int j = 1; j < mat[0].length; j++) {
-                    sum += mat[i - 1][j - 1];
+        for (int i = 0; i < mat.length; i++) {
+            sum += mat[i][i];
+            if (i != mat.length - i - 1) {
+                sum += mat[i][mat[i].length - i - 1];
             }
         }
         return sum;
