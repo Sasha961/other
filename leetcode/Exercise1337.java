@@ -1,8 +1,4 @@
-import java.awt.*;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 public class Exercise1337 {
     public static void main(String[] args) {
@@ -19,22 +15,33 @@ public class Exercise1337 {
     }
 
     public static int[] kWeakestRows(int[][] mat, int k) {
-        int[] results = new int[mat.length * mat[0].length];
+        int[] soldersPosition = new int[mat.length];
         int count = 0;
-        int solders = 0;
-        for (int i = 0; i < mat.length; i++){
-            for (int j = 0; j < mat[i].length; j++){
-                if (mat[i][j] == 1) {
+        for (int[] ints : mat) {
+            int solders = 0;
+            for (int anInt : ints) {
+                if (anInt == 1) {
                     solders++;
                 }
             }
-            results[count] = solders;
+            soldersPosition[count] = solders;
             count++;
-            solders = 0;
         }
-        
-
-        return null;
+        int[] result = new int[k];
+        int countResult = 0;
+        int position = 0;
+        for (int i = 0; i < k; i++) {
+            for (int j = 0; j < soldersPosition.length; j++) {
+                if (soldersPosition[j] < soldersPosition[position]) {
+                    position = j;
+                }
+            }
+            result[countResult] = position;
+            soldersPosition[result[countResult]] = Integer.MAX_VALUE;
+            countResult++;
+            position = 0;
+        }
+        return result;
     }
 }
 
